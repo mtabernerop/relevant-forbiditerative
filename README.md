@@ -26,23 +26,23 @@ For building the code please use
 # Running
 ## FI-top-k
 ```
-# ./plan_topk.sh <domain> <problem> <number-of-plans>
-./plan_topk.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 1000
+# ./plan_topk.sh <domain> <problem> <number-of-plans> <global-time>
+./plan_topk.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 1000 60
 ```
 ## FI-top-quality
 ```
-# ./plan_topq_via_topk.sh <domain> <problem> <quality-multiplier>
-./plan_topq_via_topk.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 1.1
+# ./plan_topq_via_topk.sh <domain> <problem> <quality-multiplier> <global-time>
+./plan_topq_via_topk.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 1.1 60
 ```
 ## FI-unordered-top-quality
 ```
-# ./plan_unordered_topq.sh <domain> <problem> <quality-multiplier>
-./plan_unordered_topq.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 1.1
+# ./plan_unordered_topq.sh <domain> <problem> <quality-multiplier> <global-time>
+./plan_unordered_topq.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 1.1 60
 ```
 ## FI-diverse-agl
 ```
-# ./plan_diverse_agl.sh <domain> <problem> <number-of-plans>
-./plan_diverse_agl.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 10
+# ./plan_diverse_agl.sh <domain> <problem> <number-of-plans> <global-time>
+./plan_diverse_agl.sh examples/logistics00/domain.pddl examples/logistics00/probLOGISTICS-4-0.pddl 10 60
 ```
 ## FI-diverse-sat
 ```
