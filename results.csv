@@ -1,1 +1,3 @@
 domain,problem,k,iterations,relevant_plans,irrelevant_plans,unfiltered_plans,processed_plans,relevant_plans_pctg,irrelevant_plans_pctg,unfiltered_plans_pctg,planning_time,extending_plans_time,task_reformulation_time,independent_planning_time,global_time,planning_time_pctg,extending_plans_time_pctg,task_reformulation_time_pctg,independent_planning_time_pctg
+logistics,p20.pddl,10,1,10,0,0,10,1.0,0.0,0.0,0.07,0,0.030000000000000027,1.2199999999999998,1.3646886348724365,0.051293751711021775,0.0,0.021983036447580775,0.8939768155349506
+logistics,p20.pddl,10,1,10,0,0,10,1.0,0.0,0.0,0.07,0,0.030000000000000027,1.21,1.4066102504730225,0.04976502906648095,0.0,0.02132786959992042,0.8602240738634562
