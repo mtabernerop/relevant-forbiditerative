@@ -1,3 +1,13 @@
+# Build
+builds/*
+
+# Domains
 examples/*
 domains/*
-builds/*
+
+# Plan results folder
+results
+
+# Pycache
+__pycache__
+driver/__pycache__/__init__.cpython-38.pyc

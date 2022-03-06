@@ -10,8 +10,7 @@ from pddl_parser.PDDL import PDDL_Parser
 import time
 
 from planner_call import get_base_dir, BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, CerberusPlannerCall, TopqReformulationPlannerCall, TopkReformulationPlannerCall, DiverseReformulationPlannerCall, AdditionalPlansPlannerCall, make_call
-from . import plan_manager as pm 
-from iterative.plan_manager import _FINAL_PLAN_FOLDER
+from . import plan_manager as pm
 
 class Planner(object): 
     def __init__(self, args):
@@ -125,8 +124,8 @@ class Planner(object):
 #####  Top-k planners
 
 class TopKPlanner(Planner):
-    def get_plan_manager(self, local_folder):
-        return pm.PlanManager("sas_plan", local_folder, compute_best_known=True)
+    def get_plan_manager(self, args, local_folder):
+        return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=True)
 
     def report_iteration_step(self, plan_manager, success):
         self._report_iteration_step(plan_manager.get_number_valid_plans(up_to_best_known_bound=True), success)
@@ -251,14 +250,14 @@ class TopKPlanner(Planner):
         
 
     def enough_plans_found(self, plan_manager):
-        num_plans = len([name for name in os.listdir(_FINAL_PLAN_FOLDER) if not os.path.isdir(os.path.join(_FINAL_PLAN_FOLDER, name))])
+        num_plans = len([name for name in os.listdir(plan_manager._final_plans_folder) if not os.path.isdir(os.path.join(plan_manager._final_plans_folder, name))])
         return num_plans >= self._args.number_of_plans
         # return self._enough_plans_found(plan_manager, up_to_best_known_bound=True)
 
 
 class TopKViaUnorderedTopQualityPlanner(Planner):
-    def get_plan_manager(self, local_folder):
-        return pm.PlanManager("sas_plan", local_folder, compute_best_known=True)
+    def get_plan_manager(self, args, local_folder):
+        return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=True)
 
     def report_iteration_step(self, plan_manager, success):
         self._report_iteration_step(plan_manager.get_number_valid_plans(up_to_best_known_bound=True), success)
@@ -341,8 +340,8 @@ class TopKViaUnorderedTopQualityPlanner(Planner):
 #####  Top Quality planners
 
 class UnorderedTopQualityPlanner(Planner):
-    def get_plan_manager(self, local_folder):
-        return pm.PlanManager("sas_plan", local_folder, compute_best_known=True)
+    def get_plan_manager(self, args, local_folder):
+        return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=True)
 
     def report_iteration_step(self, plan_manager, success):
         assert(plan_manager.get_plan_counter() == plan_manager.get_number_valid_plans(up_to_best_known_bound=True))
@@ -500,8 +499,8 @@ class ExtendedUnorderedTopQualityPlanner(UnorderedTopQualityPlanner):
 
 
 class TopQualityViaTopKPlanner(Planner):
-    def get_plan_manager(self, local_folder):
-        return pm.PlanManager("sas_plan", local_folder, compute_best_known=True)
+    def get_plan_manager(self, args, local_folder):
+        return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=True)
 
     def report_iteration_step(self, plan_manager, success):
         self._report_iteration_step(plan_manager.get_number_valid_plans(up_to_best_known_bound=True), success)
@@ -566,8 +565,8 @@ class TopQualityViaTopKPlanner(Planner):
 
 
 class TopQualityViaUnorderedTopQualityPlanner(Planner):
-    def get_plan_manager(self, local_folder):
-        return pm.PlanManager("sas_plan", local_folder, compute_best_known=True)
+    def get_plan_manager(self, args, local_folder):
+        return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=True)
 
     def report_iteration_step(self, plan_manager, success):
         self._report_iteration_step(plan_manager.get_number_valid_plans(up_to_best_known_bound=True), success)
@@ -672,8 +671,8 @@ class DiversePlanner(Planner):
         path = os.getenv('DIVERSE_FAST_DOWNWARD_PLANNER_PATH')
         return CerberusPlannerCall() if path else BaseSatisficingPlannerCall()
 
-    def get_plan_manager(self, local_folder):
-        return pm.PlanManager("sas_plan", local_folder, compute_best_known=False)
+    def get_plan_manager(self, args, local_folder):
+        return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=False)
 
     def report_iteration_step(self, plan_manager, success):
         self._report_iteration_step(plan_manager.get_plan_counter(), success)

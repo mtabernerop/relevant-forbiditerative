@@ -57,17 +57,18 @@ def find_plans(args):
     enable_planners_output = False # set to True to show planners' output on console
     if args.suppress_planners_output:
         enable_planners_output = False
-
+    
     local_folder = get_base_dir()
     if args.use_local_folder:
         local_folder = copy_plans.create_local_folder(False)
 
     logging.info("Running in %s" % local_folder)
 
-    plan_manager = planner.get_plan_manager(local_folder)
+    plan_manager = planner.get_plan_manager(args, local_folder)
+    plan_manager.create_plan_folders()
 
-    plan_manager.delete_existing_plans()
-    plan_manager.delete_additional_plans()
+    # plan_manager.delete_existing_plans()
+    # plan_manager.delete_additional_plans()
     task_manager = tm.TaskManager("reformulated_output.sas", local_folder, keep_intermediate_tasks=args.keep_intermediate_tasks)
 
     logging.debug("Planner call to find a new plan")

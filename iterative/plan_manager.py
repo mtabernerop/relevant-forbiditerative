@@ -15,13 +15,9 @@ import copy_plans
 import json
 from driver import limits
 from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, TopkReformulationPlannerCall, make_call, get_base_dir
-from pddl_parser.PDDL import parse
+from pddl_parser.PDDL import PDDL_Parser, parse
 
 _PLAN_INFO_REGEX = re.compile(r"; cost = (\d+) \((unit cost|general cost)\)\n")
-_FINAL_PLAN_FOLDER  = get_base_dir() + '/topk_plans'
-_RA_PLAN_FOLDER  = _FINAL_PLAN_FOLDER + '/forced_relevant_plans'
-_IA_PLAN_FOLDER  = _FINAL_PLAN_FOLDER + '/filtered_plans'
-_UNFILTERED_PLAN_FOLDER  = _FINAL_PLAN_FOLDER + '/unfiltered_plans'
 
 
 def _read_last_line(filename):
@@ -46,19 +42,27 @@ def _parse_plan(plan_filename):
 
 
 class PlanManager(object):
-    def __init__(self, plan_prefix, local_folder, compute_best_known):
+    def __init__(self, args, plan_prefix, local_folder, compute_best_known):
         self._plan_prefix = plan_prefix
         self._plan_costs = []
         self._problem_type = None
         self._local_folder = local_folder
         self._best_known_bound = None
         self._compute_best_known = compute_best_known
+        # plans' management folders
+        parser = PDDL_Parser()
+        prob_dir, prob_filename = os.path.split(args.problem)
+        prob_filename, prob_ext = os.path.splitext(prob_filename)
+        self._final_plans_folder = get_base_dir() + '/results/' + parser.get_domain_name(args.domain) + "-" + prob_filename + "-" + str(args.number_of_plans)
+        self._rplans_folder = self._final_plans_folder + '/forced_relevant_plans'
+        self._iplans_folder = self._final_plans_folder + '/filtered_plans'
+        self._unfiltered_plans_folder = self._final_plans_folder + '/unfiltered_plans'
 
     def get_plan_prefix(self):
         return self._plan_prefix
 
     def get_number_valid_plans(self, up_to_best_known_bound):
-        return len([name for name in os.listdir(_FINAL_PLAN_FOLDER) if not os.path.isdir(os.path.join(_FINAL_PLAN_FOLDER, name))])
+        return len([name for name in os.listdir(self._final_plans_folder) if not os.path.isdir(os.path.join(self._final_plans_folder, name))])
     #     if up_to_best_known_bound and not self._compute_best_known:
     #         raise RuntimeError("Cannot use up_to_best_known_bound if the best known bound is not computed.")
 
@@ -66,10 +70,10 @@ class PlanManager(object):
         
 
     def get_number_invalid_plans(self):
-        return len([name for name in os.listdir(_IA_PLAN_FOLDER) if not os.path.isdir(os.path.join(_IA_PLAN_FOLDER, name))])
+        return len([name for name in os.listdir(self._iplans_folder) if not os.path.isdir(os.path.join(self._iplans_folder, name))])
 
     def get_number_unfiltered_plans(self):
-        return len([name for name in os.listdir(_UNFILTERED_PLAN_FOLDER) if not os.path.isdir(os.path.join(_UNFILTERED_PLAN_FOLDER, name))])
+        return len([name for name in os.listdir(self._unfiltered_plans_folder) if not os.path.isdir(os.path.join(self._unfiltered_plans_folder, name))])
 
     def get_plan_counter(self):
         return len(self._plan_costs)
@@ -189,7 +193,7 @@ class PlanManager(object):
                 logging.info(f"Using {type(pc).__name__} to check if found plan is relevant")
                 logging.info(f"Running: {command}")
                 
-                local_folder = _RA_PLAN_FOLDER
+                local_folder = self._rplans_folder
                 time_limit = limits.get_time_limit(None, args.overall_time_limit)
                 try:
                     _timers["external_planning"].start()
@@ -207,10 +211,10 @@ class PlanManager(object):
                     raise
 
                 # checking if a plan has been found by the independent planner
-                if os.path.exists(f"{_RA_PLAN_FOLDER}/sas_plan.1"):
+                if os.path.exists(f"{self._rplans_folder}/sas_plan.1"):
                     # sas_plan.1 > ra_plan.X
-                    ra_plan_filename = f"{_RA_PLAN_FOLDER}/ra_plan.{self.get_plan_counter()+1}"
-                    os.rename(f"{_RA_PLAN_FOLDER}/sas_plan.1", ra_plan_filename)
+                    ra_plan_filename = f"{self._rplans_folder}/ra_plan.{self.get_plan_counter()+1}"
+                    os.rename(f"{self._rplans_folder}/sas_plan.1", ra_plan_filename)
                     # obtaining cost and problem type from relevant actions plan
                     ra_cost, ra_problem_type = _parse_plan(ra_plan_filename)           
                    
@@ -229,7 +233,7 @@ class PlanManager(object):
                             copy_plans.map_back_plan_order_parameters(ra_plan_filename)
 
                             # plan_filename > irrelevant plans folder
-                            ia_plan_filename = f"{_IA_PLAN_FOLDER}/ia_plan.{self.get_plan_counter()+1}"
+                            ia_plan_filename = f"{self._iplans_folder}/ia_plan.{self.get_plan_counter()+1}"
                             shutil.copy(plan_filename + ".map_back", ia_plan_filename)
 
                             logging.info(f"Plan {plan_filename} not considered among the top-k solutions")
@@ -239,7 +243,7 @@ class PlanManager(object):
                             directory, filename = os.path.split(plan_filename + ".map_back")
                             filename = filename.split(".")
                             filename = f"{filename[0]}.{filename[1]}"
-                            dest_filename = f"{_FINAL_PLAN_FOLDER}/{filename}"
+                            dest_filename = f"{self._final_plans_folder}/{filename}"
                             # sas_plan.X.map_back > ./topk_plans/sas_plan.X
                             shutil.copy2(plan_filename + ".map_back", dest_filename)
                             logging.info("Found plan does not contain irrelevant actions")
@@ -251,7 +255,7 @@ class PlanManager(object):
                 else:
                     logging.warning(f"No plan was found with {type(pc).__name__}")
                     # plan_filename > irrelevant plans folder
-                    unfiltered_plan_filename = f"{_UNFILTERED_PLAN_FOLDER}/unfiltered_plan.{self.get_plan_counter()+1}"
+                    unfiltered_plan_filename = f"{self._unfiltered_plans_folder}/unfiltered_plan.{self.get_plan_counter()+1}"
                     shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)
                     #TODO: decide whether this plan should be considered or not among top-k solutions
 
@@ -338,21 +342,29 @@ class PlanManager(object):
             logging.info("Deleting plan file: %s" % plan)
             os.remove(plan)
 
+    def create_plan_folders(self):
+        if not os.path.isdir(get_base_dir() + '/results/'):
+            os.mkdir(get_base_dir() + '/results/')
+
+        folders = [self._final_plans_folder, self._rplans_folder, self._iplans_folder, self._unfiltered_plans_folder]
+        for folder in folders:
+            os.mkdir(folder)
+
     def delete_additional_plans(self):
         """Delete relevant, irrelevant and unfiltered plans from previous executions"""
         logging.info("Deleting existing additional plans")
-        if os.path.exists(_RA_PLAN_FOLDER):
-            for f in os.listdir(_RA_PLAN_FOLDER):
-                os.remove(os.path.join(_RA_PLAN_FOLDER, f))
-        if os.path.exists(_IA_PLAN_FOLDER):
-            for f in os.listdir(_IA_PLAN_FOLDER):
-                os.remove(os.path.join(_IA_PLAN_FOLDER, f))
-        if os.path.exists(_UNFILTERED_PLAN_FOLDER):
-            for f in os.listdir(_UNFILTERED_PLAN_FOLDER):
-                os.remove(os.path.join(_UNFILTERED_PLAN_FOLDER, f))
-        if os.path.exists(_FINAL_PLAN_FOLDER):
-            for f in os.listdir(_FINAL_PLAN_FOLDER):
-                file = os.path.join(_FINAL_PLAN_FOLDER, f)
+        if os.path.exists(self._rplans_folder):
+            for f in os.listdir(self._rplans_folder):
+                os.remove(os.path.join(self._rplans_folder, f))
+        if os.path.exists(self._iplans_folder):
+            for f in os.listdir(self._iplans_folder):
+                os.remove(os.path.join(self._iplans_folder, f))
+        if os.path.exists(self._unfiltered_plans_folder):
+            for f in os.listdir(self._unfiltered_plans_folder):
+                os.remove(os.path.join(self._unfiltered_plans_folder, f))
+        if os.path.exists(self._final_plans_folder):
+            for f in os.listdir(self._final_plans_folder):
+                file = os.path.join(self._final_plans_folder, f)
                 if not os.path.isdir(file):
                     os.remove(file)
 
