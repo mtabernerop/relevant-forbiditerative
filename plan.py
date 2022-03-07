@@ -19,8 +19,6 @@ from iterative import plan_manager as pm
 from iterative import task_manager as tm
 from iterative import planners
 
-from tqdm import tqdm
-
 def create_timers():
     return {
         "planning": timers.ManualTimer(),
