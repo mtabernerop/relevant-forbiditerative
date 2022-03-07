@@ -214,6 +214,10 @@ class TopKPlanner(Planner):
         unfiltered_plans = plan_manager.get_number_unfiltered_plans()
         processed_plans = relevant_plans + irrelevant_plans + unfiltered_plans
 
+        relevant_plans_pctg = relevant_plans/processed_plans if processed_plans > 0 else 0
+        irrelevant_plans_pctg = irrelevant_plans/processed_plans if processed_plans > 0 else 0
+        unfiltered_plans_pctg = unfiltered_plans/processed_plans if processed_plans > 0 else 0
+
         global_time = time.time() - self._timer.start_time
         parser = PDDL_Parser()
         domain = parser.get_domain_name(args.domain)
@@ -231,9 +235,9 @@ class TopKPlanner(Planner):
             irrelevant_plans,
             unfiltered_plans,
             processed_plans,
-            relevant_plans/processed_plans,
-            irrelevant_plans/processed_plans,
-            unfiltered_plans/processed_plans,
+            relevant_plans_pctg,
+            irrelevant_plans_pctg,
+            unfiltered_plans_pctg,
             _timers["planning"]._elapsed_clock,
             _timers["extending_plans"]._elapsed_clock,
             _timers["task_reformulation"]._elapsed_clock,
