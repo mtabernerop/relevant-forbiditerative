@@ -122,7 +122,7 @@ class PlanManager(object):
     def parse_follow_plan_filename(self, name):
         directory, filename = os.path.split(name)
         filename, extension = os.path.splitext(filename)
-        file = f'{get_base_dir()}/{directory}/{filename}-follow-plan.pddl'
+        file = f'{directory}/{filename}-follow-plan.pddl'
         return file
 
 
@@ -253,6 +253,8 @@ class PlanManager(object):
                         # os.remove(ra_plan_filename)
 
                 else:
+                    print(f"cat {follow_plan_domain}")
+                    exit(0)
                     logging.warning(f"No plan was found with {type(pc).__name__}")
                     # plan_filename > irrelevant plans folder
                     unfiltered_plan_filename = f"{self._unfiltered_plans_folder}/unfiltered_plan.{self.get_plan_counter()+1}"
