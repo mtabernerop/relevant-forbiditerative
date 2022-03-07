@@ -5,7 +5,7 @@ import re
 from pddl_parser.action import Action
 from pddl_parser.action import PlanAction
 from textwrap import indent
-from num2words import num2words
+from pddl_parser.n2w import N2W
 import logging
 import os, sys
 
@@ -436,7 +436,7 @@ def parse_objects(objects, plan):
         objs += f'- {obj_type}\n'
 
     for i in range(len(plan)+1):
-        objs += f'{num2words(i)} '
+        objs += f'{N2W[i]} '
     objs += '- order'
 
     objs = '(:objects\n' + indent(objs, '\t', lambda line: True) + ')'
@@ -457,13 +457,13 @@ def parse_init(initial_state, plan):
     init_state += '\n;; numbers'
     for i in range(len(plan)+1):
         for j in range(i+1, len(plan)+1):
-            init_state += f'\n(before {num2words(i)} {num2words(j)})'
+            init_state += f'\n(before {N2W[i]} {N2W[j]})'
     init_state += '\n(last zero)\n'
 
     init_state += '\n;; found plan\n'
     for i, action in enumerate(plan, 1):
         if action.name != ';':
-            init_state += f'(plan-action-{action.name} {num2words(i)}'
+            init_state += f'(plan-action-{action.name} {N2W[i]}'
             for obj in action.objects:
                 init_state += f' {obj}'
             init_state += ')\n'
