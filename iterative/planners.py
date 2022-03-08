@@ -225,7 +225,7 @@ class TopKPlanner(Planner):
 
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)
-        writer.writerow([
+        row = [
             domain,
             # problem,
             os.path.basename(args.problem),
@@ -246,11 +246,19 @@ class TopKPlanner(Planner):
             _timers["planning"]._elapsed_clock/global_time,
             _timers["extending_plans"]._elapsed_clock/global_time,
             _timers["task_reformulation"]._elapsed_clock/global_time,
-            _timers["external_planning"]._elapsed_clock/global_time,
-        ])
+            _timers["external_planning"]._elapsed_clock/global_time
+        ]
+        writer.writerow(row)
         f.close()
 
-        self.report_statistics(relevant_plans, irrelevant_plans, unfiltered_plans, processed_plans, _timers)
+        # self.report_statistics(relevant_plans, irrelevant_plans, unfiltered_plans, processed_plans, _timers)
+
+        print_row = ""
+        for elem in row[:-1]:
+            print_row += f"{elem},"
+        print_row += f"{row[-1]}"
+
+        print("res:" + print_row)
         
 
     def enough_plans_found(self, plan_manager):
