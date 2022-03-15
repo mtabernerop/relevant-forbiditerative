@@ -226,7 +226,7 @@ class TopKPlanner(Planner):
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)
         row = [
-            domain,
+            os.path.basename(args.domain),
             # problem,
             os.path.basename(args.problem),
             args.number_of_plans,
