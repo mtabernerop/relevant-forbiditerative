@@ -2,13 +2,10 @@
 # Four spaces as indentation [no tabs]
 
 import re
-# from pddl_parser.action import Action # descomentar
-# from pddl_parser.action import PlanAction # descomentar
-from action import Action
-from action import PlanAction
+from pddl_parser.action import Action
+from pddl_parser.action import PlanAction
 from textwrap import indent
-# from pddl_parser.n2w import N2W # descomentar
-from n2w import N2W
+from pddl_parser.n2w import N2W
 import logging
 import os, sys
 
