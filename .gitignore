@@ -4,6 +4,7 @@ builds/*
 # Domains
 examples/*
 domains/*
+pddl_parser/examples/*
 
 # Plan results folder
 results

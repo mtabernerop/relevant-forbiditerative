@@ -16,7 +16,12 @@ class Action:
 
     def __init__(self, name, parameters, positive_preconditions, negative_preconditions, add_effects, del_effects, extensions = None):
         def frozenset_of_tuples(data):
-            return frozenset([tuple(t) for t in data])
+            _data = []
+            for t in data:
+                if t[0] == 'increase' or t[0] == 'decrease':
+                    t = [t[0]] + ['('] + t[1] + [')'] + ['('] + t[2] + [')']
+                _data += [t]
+            return frozenset([tuple(t) for t in _data])
         self.name = name
         self.parameters = parameters
         self.positive_preconditions = frozenset_of_tuples(positive_preconditions)

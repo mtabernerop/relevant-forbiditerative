@@ -347,10 +347,13 @@ class PlanManager(object):
     def create_plan_folders(self):
         if not os.path.isdir(get_base_dir() + '/results/'):
             os.mkdir(get_base_dir() + '/results/')
-
+ 
         folders = [self._final_plans_folder, self._rplans_folder, self._iplans_folder, self._unfiltered_plans_folder]
         for folder in folders:
-            os.mkdir(folder)
+            if os.path.exists(folder):
+                shutil.rmtree(folder)
+            os.mkdir(folder) 
+        
 
     def delete_additional_plans(self):
         """Delete relevant, irrelevant and unfiltered plans from previous executions"""

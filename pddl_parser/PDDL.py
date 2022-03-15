@@ -2,16 +2,19 @@
 # Four spaces as indentation [no tabs]
 
 import re
-from pddl_parser.action import Action
-from pddl_parser.action import PlanAction
+# from pddl_parser.action import Action # descomentar
+# from pddl_parser.action import PlanAction # descomentar
+from action import Action
+from action import PlanAction
 from textwrap import indent
-from pddl_parser.n2w import N2W
+# from pddl_parser.n2w import N2W # descomentar
+from n2w import N2W
 import logging
 import os, sys
 
 class PDDL_Parser:
 
-    SUPPORTED_REQUIREMENTS = [':strips', ':negative-preconditions', ':typing', ':equality', ':adl']
+    SUPPORTED_REQUIREMENTS = [':strips', ':negative-preconditions', ':typing', ':equality', ':adl', ':action-costs']
 
     #-----------------------------------------------
     # Tokens
@@ -56,6 +59,7 @@ class PDDL_Parser:
             self.objects = {}
             self.actions = []
             self.predicates = {}
+            self.functions = {}
             while tokens:
                 group = tokens.pop(0)
                 t = group.pop(0)
@@ -70,6 +74,8 @@ class PDDL_Parser:
                     self.parse_objects(group, t)
                 elif t == ':predicates':
                     self.parse_predicates(group)
+                elif t == ':functions':
+                    self.parse_functions(group)
                 elif t == ':types':
                     self.parse_types(group)
                 elif t == ':action':
@@ -150,6 +156,36 @@ class PDDL_Parser:
             self.predicates[predicate_name] = arguments
 
     #-----------------------------------------------
+    # Parse function
+    #-----------------------------------------------
+
+    def parse_functions(self, group):
+
+        for func in group:
+            if func == '-' or func == 'number':
+                continue
+            
+            function_name = func.pop(0)
+            if function_name in self.predicates:
+                raise Exception('Function ' + function_name + ' redefined')
+            arguments = {}
+            untyped_variables = []
+        
+            while func:
+                t = func.pop(0)
+                if t == '-':
+                    if not untyped_variables:
+                        raise Exception('Unexpected hyphen in predicates')
+                    type = func.pop(0)
+                    while untyped_variables:
+                        arguments[untyped_variables.pop(0)] = type
+                else:
+                    untyped_variables.append(t)
+            while untyped_variables:
+                arguments[untyped_variables.pop(0)] = 'object'
+            self.functions[function_name] = arguments
+
+    #-----------------------------------------------
     # Parse action
     #-----------------------------------------------
 
@@ -202,7 +238,12 @@ class PDDL_Parser:
 
     def parse_problem(self, problem_filename):
         def frozenset_of_tuples(data):
-            return frozenset([tuple(t) for t in data])
+            tuples = []
+            for t in data:
+                if t[0] == '=':
+                    t = [t[0]] + t[1] + [t[2]] # Example: ['=' , ['total-cost'], 0] into ['=' , 'total-cost', 0]
+                tuples += [tuple(t)]            
+            return frozenset(tuples)
         tokens = self.scan_tokens(problem_filename)
         if type(tokens) is list and tokens.pop(0) == 'define':
             self.problem_name = 'unknown'
@@ -254,7 +295,7 @@ class PDDL_Parser:
         for predicate in group:
             if predicate[0] == 'not':
                 if len(predicate) != 2:
-                    raise Exception('Unexpected not in ' + name + part)
+                    raise Exception('Unexpected element in ' + name + part)
                 negative.append(predicate[-1])
             else:
                 positive.append(predicate)
@@ -359,6 +400,20 @@ def parse_predicates(predicates, actions):
     return preds
 
 #-----------------------------------------------
+# Functions
+#-----------------------------------------------
+def parse_functions(functions):
+    functs = ''
+    for key, values in functions.items():
+        functs += f'({key}'
+        for k, val in values.items():
+            functs += f' {k} - {val}'
+        functs += ') - number\n'
+    
+    functs = '(:functions\n' + indent(functs, '\t', lambda line: True) + ')'
+    return functs
+
+#-----------------------------------------------
 # Actions
 #-----------------------------------------------
 def create_predicates(predicates, negative=False):
@@ -450,8 +505,14 @@ def parse_init(initial_state, plan):
     for predicate in initial_state:
         init_state += f'({predicate[0]}'
         if (len(predicate) > 1):
-            for obj in predicate[1:]:
-                init_state += f' {obj}'
+            if (predicate[0] == '='):
+                init_state += f' ('
+                for obj in predicate[1:-1]:
+                    init_state += f' {obj}'
+                init_state += f') {predicate[-1]}'
+            else:
+                for obj in predicate[1:]:
+                    init_state += f' {obj}'
         init_state += ')\n'
 
     init_state += '\n;; numbers'
@@ -544,10 +605,11 @@ def parse(domain_filename, problem_filename, plan_filename):
     domain += f'{parse_requirements(parser.requirements)}{eol}'
     domain += f'{parse_types(parser.types)}{eol}'
     domain += f'{parse_predicates(parser.predicates, parser.actions)}{eol}'
+    domain += f'{parse_functions(parser.functions)}{eol}'
     domain += f'{parse_actions(parser.actions)}{eol}'
     domain += ')'
 
-    # ----
+# ----
     # PLAN
     # ----
     plan = parser.parse_plan(plan_filename)
@@ -566,3 +628,7 @@ def parse(domain_filename, problem_filename, plan_filename):
     problem += ')'
 
     save_files(domain_filename, problem_filename, domain, problem)
+
+
+
+    

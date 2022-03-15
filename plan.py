@@ -52,7 +52,7 @@ def find_plans(args):
     _timers = create_timers()
 
     planner = get_planner(args)
-    enable_planners_output = False # set to True to show planners' output on console
+    enable_planners_output = True # set to True to show planners' output on console
     if args.suppress_planners_output:
         enable_planners_output = False
     
