@@ -247,6 +247,7 @@ class PDDL_Parser:
             self.state = frozenset()
             self.positive_goals = frozenset()
             self.negative_goals = frozenset()
+            self.metric = []
             while tokens:
                 group = tokens.pop(0)
                 t = group.pop(0)
@@ -267,6 +268,10 @@ class PDDL_Parser:
                     self.split_predicates(group[0], positive_goals, negative_goals, '', 'goals')
                     self.positive_goals = frozenset_of_tuples(positive_goals)
                     self.negative_goals = frozenset_of_tuples(negative_goals)
+                elif t == ':metric':
+                    if len(group) < 2:
+                        raise Exception("Invalid metric in problem file")
+                    self.metric = group
                 else: self.parse_problem_extended(t, group)
         else:
             raise Exception('File ' + problem_filename + ' does not match problem pattern')
@@ -555,6 +560,24 @@ def parse_goal(positive_goals, negative_goals):
     return goal
 
 #-----------------------------------------------
+# Metric
+#-----------------------------------------------
+def parse_metric(metric):
+    if not metric:
+        return ''
+    return f"(:metric {metric[0]} {array_to_predicate(metric[1])})"
+
+def array_to_predicate(arr):
+    predicate = '('
+    for elem in arr:
+        if not isinstance(elem, list):
+            predicate += f"{elem} "
+        else:
+            predicate += array_to_predicate(elem)
+    predicate += ') '
+    return predicate
+
+#-----------------------------------------------
 # Save files
 #-----------------------------------------------
 def save_files(domain_filename, problem_filename, domain, problem):
@@ -622,6 +645,52 @@ def parse(domain_filename, problem_filename, plan_filename):
     problem += f'{parse_objects(parser.objects, plan)}{eol}'
     problem += f'{parse_init(parser.state, plan)}{eol}'
     problem += f'{parse_goal(parser.positive_goals, parser.negative_goals)}{eol}'
+    problem += f'{parse_metric(parser.metric)}{eol}'
+    problem += ')'
+
+    save_files(domain_filename, problem_filename, domain, problem)
+
+if __name__ == '__main__':
+
+    domain_filename = sys.argv[1]
+    problem_filename = sys.argv[2]
+    plan_filename = sys.argv[3]
+
+    parser = PDDL_Parser()
+
+    eol = '\n'
+
+    # ------
+    # DOMAIN
+    # ------ 
+    parser.parse_domain(domain_filename)
+
+    domain = f'(define '
+    domain += f'{parse_domain_name(parser.domain_name)}{eol}'
+    domain += f'{parse_requirements(parser.requirements)}{eol}'
+    domain += f'{parse_types(parser.types)}{eol}'
+    domain += f'{parse_predicates(parser.predicates, parser.actions)}{eol}'
+    domain += f'{parse_functions(parser.functions)}{eol}'
+    domain += f'{parse_actions(parser.actions)}{eol}'
+    domain += ')'
+
+# ----
+    # PLAN
+    # ----
+    plan = parser.parse_plan(plan_filename)
+
+    # -------
+    # PROBLEM
+    # -------
+    parser.parse_problem(problem_filename)
+
+    problem = f'(define '
+    problem += f'{parse_problem_name(parser.problem_name)}{eol}'
+    problem += f'{parse_problem_domain(parser.domain_name)}{eol}'
+    problem += f'{parse_objects(parser.objects, plan)}{eol}'
+    problem += f'{parse_init(parser.state, plan)}{eol}'
+    problem += f'{parse_goal(parser.positive_goals, parser.negative_goals)}{eol}'
+    problem += f'{parse_metric(parser.metric)}{eol}'
     problem += ')'
 
     save_files(domain_filename, problem_filename, domain, problem)
