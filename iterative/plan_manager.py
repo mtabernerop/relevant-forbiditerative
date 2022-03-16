@@ -17,7 +17,7 @@ from driver import limits
 from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, TopkReformulationPlannerCall, make_call, get_base_dir
 from pddl_parser.PDDL import PDDL_Parser, parse
 
-_PLAN_INFO_REGEX = re.compile(r"; cost = (\d+) \((unit cost|general cost)\)\n")
+_PLAN_INFO_REGEX = re.compile(r"; cost = (\d+) \((unit cost|general cost)\)([\n]{0,1})")
 
 
 def _read_last_line(filename):
