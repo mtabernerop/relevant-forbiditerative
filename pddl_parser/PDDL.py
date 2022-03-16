@@ -580,29 +580,28 @@ def array_to_predicate(arr):
 #-----------------------------------------------
 # Save files
 #-----------------------------------------------
-def save_files(domain_filename, problem_filename, domain, problem):
+def save_files(domain_filename, problem_filename, domain, problem, verbose):
     if domain is None:
-        print('ERROR: Domain creation was unsuccessful')
-        exit(-1)
-    elif problem is None:
-        print('ERROR: Problem creation was unsuccessful')
-        exit(-1)
-    else:
-        directory, filename = os.path.split(domain_filename)
-        filename, extension = os.path.splitext(filename)
-        domain_file = f'{directory}/{filename}-follow-plan.pddl'
-        
-        with open(domain_file, "w") as file:
-            file.write(domain)
-            file.close()
+        raise Exception('Domain creation was unsuccessful')
+    if problem is None:
+        raise Exception('Problem creation was unsuccessful')
+    
+    directory, filename = os.path.split(domain_filename)
+    filename, extension = os.path.splitext(filename)
+    domain_file = f'{directory}/{filename}-follow-plan.pddl'
+    
+    with open(domain_file, "w") as file:
+        file.write(domain)
+        file.close()
 
-        directory, filename = os.path.split(problem_filename)
-        filename, extension = os.path.splitext(filename)
-        problem_file = f'{directory}/{filename}-follow-plan.pddl'
-        with open(problem_file, "w") as file:
-            file.write(problem)
-            file.close()
+    directory, filename = os.path.split(problem_filename)
+    filename, extension = os.path.splitext(filename)
+    problem_file = f'{directory}/{filename}-follow-plan.pddl'
+    with open(problem_file, "w") as file:
+        file.write(problem)
+        file.close()
 
+    if verbose:
         print('Domain and problem files successfully created')
         print(f'Created files:\t{domain_file}\t{problem_file}')
 
@@ -610,7 +609,7 @@ def save_files(domain_filename, problem_filename, domain, problem):
 #-----------------------------------------------
 # Main
 #-----------------------------------------------
-def parse(domain_filename, problem_filename, plan_filename):
+def parse(domain_filename, problem_filename, plan_filename, verbose=False):
     parser = PDDL_Parser()
 
     eol = '\n'
@@ -648,52 +647,7 @@ def parse(domain_filename, problem_filename, plan_filename):
     problem += f'{parse_metric(parser.metric)}{eol}'
     problem += ')'
 
-    save_files(domain_filename, problem_filename, domain, problem)
-
-if __name__ == '__main__':
-
-    domain_filename = sys.argv[1]
-    problem_filename = sys.argv[2]
-    plan_filename = sys.argv[3]
-
-    parser = PDDL_Parser()
-
-    eol = '\n'
-
-    # ------
-    # DOMAIN
-    # ------ 
-    parser.parse_domain(domain_filename)
-
-    domain = f'(define '
-    domain += f'{parse_domain_name(parser.domain_name)}{eol}'
-    domain += f'{parse_requirements(parser.requirements)}{eol}'
-    domain += f'{parse_types(parser.types)}{eol}'
-    domain += f'{parse_predicates(parser.predicates, parser.actions)}{eol}'
-    domain += f'{parse_functions(parser.functions)}{eol}'
-    domain += f'{parse_actions(parser.actions)}{eol}'
-    domain += ')'
-
-# ----
-    # PLAN
-    # ----
-    plan = parser.parse_plan(plan_filename)
-
-    # -------
-    # PROBLEM
-    # -------
-    parser.parse_problem(problem_filename)
-
-    problem = f'(define '
-    problem += f'{parse_problem_name(parser.problem_name)}{eol}'
-    problem += f'{parse_problem_domain(parser.domain_name)}{eol}'
-    problem += f'{parse_objects(parser.objects, plan)}{eol}'
-    problem += f'{parse_init(parser.state, plan)}{eol}'
-    problem += f'{parse_goal(parser.positive_goals, parser.negative_goals)}{eol}'
-    problem += f'{parse_metric(parser.metric)}{eol}'
-    problem += ')'
-
-    save_files(domain_filename, problem_filename, domain, problem)
+    save_files(domain_filename, problem_filename, domain, problem, verbose)
 
 
 
