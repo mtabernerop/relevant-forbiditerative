@@ -580,7 +580,7 @@ def array_to_predicate(arr):
 #-----------------------------------------------
 # Save files
 #-----------------------------------------------
-def save_files(domain_filename, problem_filename, domain, problem, verbose):
+def save_files(domain_filename, problem_filename, domain, problem, enable_output):
     if domain is None:
         raise Exception('Domain creation was unsuccessful')
     if problem is None:
@@ -601,7 +601,7 @@ def save_files(domain_filename, problem_filename, domain, problem, verbose):
         file.write(problem)
         file.close()
 
-    if verbose:
+    if enable_output:
         print('Domain and problem files successfully created')
         print(f'Created files:\t{domain_file}\t{problem_file}')
 
@@ -609,7 +609,7 @@ def save_files(domain_filename, problem_filename, domain, problem, verbose):
 #-----------------------------------------------
 # Main
 #-----------------------------------------------
-def parse(domain_filename, problem_filename, plan_filename, verbose=False):
+def parse(domain_filename, problem_filename, plan_filename, enable_output=False):
     parser = PDDL_Parser()
 
     eol = '\n'
@@ -647,7 +647,10 @@ def parse(domain_filename, problem_filename, plan_filename, verbose=False):
     problem += f'{parse_metric(parser.metric)}{eol}'
     problem += ')'
 
-    save_files(domain_filename, problem_filename, domain, problem, verbose)
+    save_files(domain_filename, problem_filename, domain, problem, enable_output)
+
+if __name__ == "__main__":
+    parse(sys.argv[1], sys.argv[2], sys.argv[3])
 
 
 
