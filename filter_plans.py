@@ -16,7 +16,7 @@ FILTER PLAN
 -----------
 Script that detects if a plan is relevant.
 
-> Syscall: python filter_plans.py <domain> <problem> <plan> <number_of_plans>
+> Syscall: python filter_plans.py <domain> <problem> <plan> <cost> <number_of_plans>
 
 > Output: <elapsed_time>,<True/False>
           
@@ -39,7 +39,8 @@ if __name__ == "__main__":
     domain = sys.argv[1]
     problem = sys.argv[2]
     plan_filename = sys.argv[3]
-    number_of_plans = sys.argv[4]
+    cost = sys.argv[4]
+    number_of_plans = sys.argv[5]
 
     # Obtaining folder names
     parser = PDDL_Parser()
@@ -49,9 +50,6 @@ if __name__ == "__main__":
     _rplans_folder = _final_plans_folder + '/forced_relevant_plans'
     _iplans_folder = _final_plans_folder + '/filtered_plans'
     _unfiltered_plans_folder = _final_plans_folder + '/unfiltered_plans'
-
-    # Getting cost from plan
-    cost, problem_type = _parse_plan(plan_filename)
          
     # mapping back reformulation additional information
     copy_plans.map_back_fast_downward_plan_file(plan_filename, plan_filename + ".map_back")
@@ -64,6 +62,7 @@ if __name__ == "__main__":
     pcargs = {}
     pcargs['domain_file'] = follow_plan_domain
     pcargs['problem_file'] = follow_plan_problem
+    pcargs['k'] = number_of_plans
     pcargs['num_previous_plans'] = 0
 
     """
@@ -93,7 +92,7 @@ if __name__ == "__main__":
         make_call(command, time_limit, local_folder)
         _time2 = os.times()
         _time2 = _time2[0] + _time2[1] + _time2[2] + _time2[3] # _timers["external_planning"].stop()
-        print(f"{_time2 - _time1},", end="")
+        # print(f"{_time2 - _time1},", end="") # Uncomment if time is required
     except:
         raise
 
@@ -108,12 +107,12 @@ if __name__ == "__main__":
         # checking if the plan is valid (e.g. not incomplete)
         if ra_cost != None:
             # Plan found
-            if ra_cost < cost:
+            if ra_cost < int(cost):
                 # irrelevant actions detected in plan
                 # plan_filename should not be considered among top-k solutions
                 
                 # inform that the found plan contains irrelevant actions
-                print(True)
+                print("true")
 
                 # mapping back order parameters in actions
                 copy_plans.map_back_plan_order_parameters(ra_plan_filename)
@@ -123,7 +122,7 @@ if __name__ == "__main__":
                 shutil.copy(plan_filename + ".map_back", ia_plan_filename)
             else:
                 # inform that the found plan does not contain irrelevant actions
-                print(False)
+                print("false")
 
                 # no irrelevant actions detected in plan
                 directory, filename = os.path.split(plan_filename + ".map_back")
@@ -138,7 +137,7 @@ if __name__ == "__main__":
 
     else:
         # inform that the found plan contains irrelevant actions
-        print(False)
+        print("false")
         # plan_filename > unfiltered plans folder
         unfiltered_plan_filename = f"{_unfiltered_plans_folder}/unfiltered_plan.{get_plan_counter(_rplans_folder)+1}"
         shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)

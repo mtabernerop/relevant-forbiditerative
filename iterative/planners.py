@@ -37,6 +37,7 @@ class Planner(object):
         pcargs = kwargs
         pcargs["domain_file"] = self._args.domain
         pcargs["problem_file"] = self._args.problem
+        pcargs["k"] = self._args.number_of_plans
 
         name = task_manager.get_current_task_path()
         if name is not None:
