@@ -173,7 +173,7 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     node.close();
 }
 
-SearchStatus EnforcedHillClimbingSearch::step() {
+SearchStatus EnforcedHillClimbingSearch::step(int argc, const char **argv) {
     last_num_expanded = statistics.get_expanded();
     search_progress.check_progress(current_eval_context);
 

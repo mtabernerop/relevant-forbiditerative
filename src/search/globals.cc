@@ -172,8 +172,8 @@ std::vector<const GlobalOperator *> load_single_plan(std::string path_to_plan_fi
                 utils::exit_with(ExitCode::INPUT_ERROR);
             }
         }
-        // cout << "Name " << it->first << endl;
-        // cout << "Found operator " << it->second->get_name() << endl;
+        //cout << "Name " << it->first << endl;
+        //cout << "Found operator " << it->second->get_name() << endl;
         plan.push_back(it->second);
     }
     return plan;

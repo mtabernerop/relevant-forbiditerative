@@ -61,13 +61,12 @@ class PlanManager(object):
     def get_plan_prefix(self):
         return self._plan_prefix
 
-    def get_number_valid_plans(self, up_to_best_known_bound):
-        return len([name for name in os.listdir(self._final_plans_folder) if not os.path.isdir(os.path.join(self._final_plans_folder, name))])
-    #     if up_to_best_known_bound and not self._compute_best_known:
-    #         raise RuntimeError("Cannot use up_to_best_known_bound if the best known bound is not computed.")
 
-    #     return self.get_plan_counter_upto_best_known_bound() if up_to_best_known_bound else self.get_plan_counter()
-        
+    def get_number_valid_plans(self, up_to_best_known_bound):
+        if up_to_best_known_bound and not self._compute_best_known:
+            raise RuntimeError("Cannot use up_to_best_known_bound if the best known bound is not computed.")
+
+        return self.get_plan_counter_upto_best_known_bound() if up_to_best_known_bound else self.get_plan_counter()
 
     def get_number_invalid_plans(self):
         return len([name for name in os.listdir(self._iplans_folder) if not os.path.isdir(os.path.join(self._iplans_folder, name))])
@@ -125,7 +124,6 @@ class PlanManager(object):
         file = f'{directory}/{filename}-follow-plan.pddl'
         return file
 
-
     def process_new_plans(self, args, planner, _timers):
         """Update information about plans after a planner run.
 
@@ -137,16 +135,13 @@ class PlanManager(object):
             logging.info("%s: %s" % (plan_filename, msg))
             #raise RuntimeError("%s: %s" % (plan_filename, msg))
 
-        logging.debug("Processing new plans")
         num_plans_so_far = self.get_plan_counter()
         had_incomplete_plan = False
         new_plans_min_cost = None 
-        
         for counter in itertools.count(num_plans_so_far + 1):
             plan_filename = self._get_local_plan_file(counter)
             if not os.path.exists(plan_filename):
                 break
-            
             if had_incomplete_plan:
                 bogus_plan("plan found after incomplete plan")
                 break
@@ -157,112 +152,6 @@ class PlanManager(object):
                 os.remove(plan_filename)
             else:
                 logging.debug("plan manager: found new plan with cost %d (%s)" % (cost, plan_filename))
-         
-                # mapping back reformulation additional information
-                copy_plans.map_back_fast_downward_plan_file(plan_filename, plan_filename + ".map_back")
-                
-                # parsing domain and problem to enforce following relevant actions
-                parse(args.domain, args.problem, plan_filename + ".map_back")
-                follow_plan_domain = self.parse_follow_plan_filename(args.domain)   # new generated domain
-                follow_plan_problem = self.parse_follow_plan_filename(args.problem) # new generated problem
-
-                pcargs = {}
-                pcargs['domain_file'] = follow_plan_domain
-                pcargs['problem_file'] = follow_plan_problem
-                pcargs['num_previous_plans'] = 0
-
-                """
-                -------------
-                ALTERNATIVE 1
-                -------------
-                Manual fast-downward call
-                """
-                # enable the following options in order to use fast-downward with alias
-                # pcargs['plan_file'] = 'sas_plan.1'
-                # pcargs['alias'] = 'seq-sat-lama-2011'
-                # os.system("./fast-downward.py --plan-file {plan_file} --alias {alias} {domain_file} {problem_file}".format(**pcargs))
-                """
-                -------------
-                ALTERNATIVE 2
-                -------------
-                BaseCostOptimalPlanner / BaseSatisficingPlanner call
-                """
-                pc = BaseCostOptimalPlannerCall()
-                command = pc.get_callstring(**pcargs)
-                
-                logging.info(f"Using {type(pc).__name__} to check if found plan is relevant")
-                logging.info(f"Running: {command}")
-                
-                local_folder = self._rplans_folder
-                time_limit = limits.get_time_limit(None, args.overall_time_limit)
-                try:
-                    _timers["external_planning"].start()
-                    make_call(command, time_limit, local_folder) # enable_output=True
-                    _timers["external_planning"].stop()
-                except subprocess.TimeoutExpired:
-                    logging.warning("Timeout expired. End of execution.")
-                    planner.report_iteration_step(self, success=False)
-                    # planner.finalize(plan_manager)
-                    planner.cleanup(self)
-                    planner.report_done()
-                    planner.finalize(args, self, _timers)
-                    exit(0)
-                except:
-                    raise
-
-                # checking if a plan has been found by the independent planner
-                if os.path.exists(f"{self._rplans_folder}/sas_plan.1"):
-                    # sas_plan.1 > ra_plan.X
-                    ra_plan_filename = f"{self._rplans_folder}/ra_plan.{self.get_plan_counter()+1}"
-                    os.rename(f"{self._rplans_folder}/sas_plan.1", ra_plan_filename)
-                    # obtaining cost and problem type from relevant actions plan
-                    ra_cost, ra_problem_type = _parse_plan(ra_plan_filename)           
-                   
-                   # checking if the plan is valid (e.g. not incomplete)
-                    if ra_cost != None:
-                        logging.info(f"Plan found using {type(pc).__name__} with cost {ra_cost}")
-
-                        if ra_cost < cost:
-                            # irrelevant actions detected in plan
-                            # plan_filename should not be considered among top-k solutions
-                            logging.info("Found plan contains irrelevant actions")
-                            logging.info(f"> Found plan cost: {cost}")
-                            logging.info(f"> Relevant actions plan cost: {ra_cost}")
-
-                            # mapping back order parameters in actions
-                            copy_plans.map_back_plan_order_parameters(ra_plan_filename)
-
-                            # plan_filename > irrelevant plans folder
-                            ia_plan_filename = f"{self._iplans_folder}/ia_plan.{self.get_plan_counter()+1}"
-                            shutil.copy(plan_filename + ".map_back", ia_plan_filename)
-
-                            logging.info(f"Plan {plan_filename} not considered among the top-k solutions")
-        
-                        else:
-                            # no irrelevant actions detected in plan
-                            directory, filename = os.path.split(plan_filename + ".map_back")
-                            filename = filename.split(".")
-                            filename = f"{filename[0]}.{filename[1]}"
-                            dest_filename = f"{self._final_plans_folder}/{filename}"
-                            # sas_plan.X.map_back > ./topk_plans/sas_plan.X
-                            shutil.copy2(plan_filename + ".map_back", dest_filename)
-                            logging.info("Found plan does not contain irrelevant actions")
-                            logging.info(f"Copying plan to {dest_filename}")
-
-                        # uncomment the following line to remove comparison (forced) relevant plans
-                        # os.remove(ra_plan_filename)
-
-                else:
-                    print(f"cat {follow_plan_domain}")
-                    exit(0)
-                    logging.warning(f"No plan was found with {type(pc).__name__}")
-                    # plan_filename > irrelevant plans folder
-                    unfiltered_plan_filename = f"{self._unfiltered_plans_folder}/unfiltered_plan.{self.get_plan_counter()+1}"
-                    shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)
-                    #TODO: decide whether this plan should be considered or not among top-k solutions
-
-                os.remove(plan_filename + ".map_back")
-
                 if self._problem_type is None:
                     # This is the first plan we found.
                     self._problem_type = problem_type
@@ -271,9 +160,8 @@ class PlanManager(object):
                     if self._problem_type != problem_type:
                         bogus_plan("problem type has changed")
                     ## The assumption that the last plan is the cheapest is not valid here 
-                    if num_plans_so_far >= 1 and cost >= self._plan_costs[-1]:
-                        bogus_plan("plan quality has not improved")
-                # Append cost only if it must be considered among the best top-k plans              
+                    #if cost >= self._plan_costs[-1]:
+                    #    bogus_plan("plan quality has not improved")                
                 self._plan_costs.append(cost)
                 if self._compute_best_known:
                     ## Updating the best known cost bound (for top-k planner only, at this point)
@@ -283,7 +171,6 @@ class PlanManager(object):
                         new_plans_min_cost = min(new_plans_min_cost, cost)
                     if self._best_known_bound is None:
                         self._best_known_bound = cost
-            
         if self._compute_best_known and new_plans_min_cost is None:
             return 0
         ## The bound can only improve
@@ -292,9 +179,6 @@ class PlanManager(object):
             bogus_plan("new plan found is cheaper than the known bound")
         if self._compute_best_known:
             self._best_known_bound = new_plans_min_cost
-        plans_processed = self.get_plan_counter() - num_plans_so_far
-        logging.info("%s plan(s) processed" % (plans_processed))
-        logging.debug("End of plan processing\n")
         return self.get_plan_counter() - num_plans_so_far
 
     def get_local_plans(self):
@@ -344,17 +228,6 @@ class PlanManager(object):
             logging.info("Deleting plan file: %s" % plan)
             os.remove(plan)
 
-    def create_plan_folders(self):
-        if not os.path.isdir(get_base_dir() + '/results/'):
-            os.mkdir(get_base_dir() + '/results/')
- 
-        folders = [self._final_plans_folder, self._rplans_folder, self._iplans_folder, self._unfiltered_plans_folder]
-        for folder in folders:
-            if os.path.exists(folder):
-                shutil.rmtree(folder)
-            os.mkdir(folder) 
-        
-
     def delete_additional_plans(self):
         """Delete relevant, irrelevant and unfiltered plans from previous executions"""
         logging.info("Deleting existing additional plans")
@@ -372,6 +245,16 @@ class PlanManager(object):
                 file = os.path.join(self._final_plans_folder, f)
                 if not os.path.isdir(file):
                     os.remove(file)
+
+    def create_plan_folders(self):
+        if not os.path.isdir(get_base_dir() + '/results/'):
+            os.mkdir(get_base_dir() + '/results/')
+ 
+        folders = [self._final_plans_folder, self._rplans_folder, self._iplans_folder, self._unfiltered_plans_folder]
+        for folder in folders:
+            if os.path.exists(folder):
+                shutil.rmtree(folder)
+            os.mkdir(folder) 
 
     def _get_local_plan_file(self, number):
         return self._get_plan_file(number, subfolder=None)
@@ -422,7 +305,6 @@ class PlanManager(object):
 
             with open(name, 'w') as f:
                 f.writelines(lines)
-
         for counter in itertools.count(start=1):
             plan_filename = self._get_local_plan_file(counter)
             if os.path.exists(plan_filename):
@@ -514,3 +396,4 @@ class PlanManager(object):
         task_manager._task_counter += 1
 
         os.remove(plan_file)
+        

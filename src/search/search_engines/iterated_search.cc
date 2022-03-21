@@ -53,7 +53,7 @@ unique_ptr<SearchEngine> IteratedSearch::create_phase(int phase) {
     return get_search_engine(phase);
 }
 
-SearchStatus IteratedSearch::step() {
+SearchStatus IteratedSearch::step(int argc, const char **argv) {
     unique_ptr<SearchEngine> current_search = create_phase(phase);
     if (!current_search) {
         return found_solution() ? SOLVED : FAILED;
@@ -63,7 +63,7 @@ SearchStatus IteratedSearch::step() {
     }
     ++phase;
 
-    current_search->search();
+    current_search->search(argc, argv);
 
     SearchEngine::Plan found_plan;
     int plan_cost = 0;

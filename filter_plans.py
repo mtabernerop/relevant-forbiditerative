@@ -25,8 +25,8 @@ Script that detects if a plan is relevant.
 """
 
 
-def get_plan_counter(_rplan_folder):
-    return len([name for name in os.listdir(_rplan_folder) if os.path.isfile(os.path.join(_rplan_folder, name)) and "ra_plan" in name])
+def get_plan_counter(folder):
+    return len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name)) and "ra_plan" in name])
 
 
 def parse_follow_plan_filename(name):
@@ -50,6 +50,10 @@ if __name__ == "__main__":
     _rplans_folder = _final_plans_folder + '/forced_relevant_plans'
     _iplans_folder = _final_plans_folder + '/filtered_plans'
     _unfiltered_plans_folder = _final_plans_folder + '/unfiltered_plans'
+
+    # Result file
+    result_filename = "is_relevant.txt"
+    f = open(result_filename, "w")
          
     # mapping back reformulation additional information
     copy_plans.map_back_fast_downward_plan_file(plan_filename, plan_filename + ".map_back")
@@ -63,6 +67,7 @@ if __name__ == "__main__":
     pcargs['domain_file'] = follow_plan_domain
     pcargs['problem_file'] = follow_plan_problem
     pcargs['k'] = number_of_plans
+    pcargs["check-relevance"] = "false"
     pcargs['num_previous_plans'] = 0
 
     """
@@ -86,6 +91,7 @@ if __name__ == "__main__":
 
     local_folder = _rplans_folder
     time_limit = limits.get_time_limit(None, 300) #TODO: verificar empíricamente si 5 minutos es suficiente para encontrar 1 plan
+
     try:
         _time1 = os.times()
         _time1 = _time1[0] + _time1[1] + _time1[2] + _time1[3] # _timers["external_planning"].start()
@@ -95,7 +101,7 @@ if __name__ == "__main__":
         # print(f"{_time2 - _time1},", end="") # Uncomment if time is required
     except:
         raise
-
+    
     # checking if a plan has been found by the independent planner
     if os.path.exists(f"{_rplans_folder}/sas_plan.1"):
         # sas_plan.1 > ra_plan.X
@@ -111,8 +117,8 @@ if __name__ == "__main__":
                 # irrelevant actions detected in plan
                 # plan_filename should not be considered among top-k solutions
                 
-                # inform that the found plan contains irrelevant actions
-                print("true")
+                # inform that the found plan is not relevant
+                f.write("false")
 
                 # mapping back order parameters in actions
                 copy_plans.map_back_plan_order_parameters(ra_plan_filename)
@@ -121,13 +127,14 @@ if __name__ == "__main__":
                 ia_plan_filename = f"{_iplans_folder}/ia_plan.{get_plan_counter(_rplans_folder)}"
                 shutil.copy(plan_filename + ".map_back", ia_plan_filename)
             else:
-                # inform that the found plan does not contain irrelevant actions
-                print("false")
+                # inform that the found plan is relevant
+                f.write("true")
 
                 # no irrelevant actions detected in plan
-                directory, filename = os.path.split(plan_filename + ".map_back")
-                filename = filename.split(".")
-                filename = f"{filename[0]}.{filename[1]}"
+                # directory, filename = os.path.split(plan_filename + ".map_back")
+                # filename = filename.split(".")
+                # filename = f"{filename[0]}.{filename[1]}"
+                filename = "sas_plan." + str(get_plan_counter(_rplans_folder)+1)
                 dest_filename = f"{_final_plans_folder}/{filename}"
                 # sas_plan.X.map_back > ./topk_plans/sas_plan.X
                 shutil.copy2(plan_filename + ".map_back", dest_filename)
@@ -136,13 +143,13 @@ if __name__ == "__main__":
             # os.remove(ra_plan_filename)
 
     else:
-        # inform that the found plan contains irrelevant actions
-        print("false")
+        # inform that the plan could not be parsed
+        f.write("unparsed")
+        exit(0)
         # plan_filename > unfiltered plans folder
         unfiltered_plan_filename = f"{_unfiltered_plans_folder}/unfiltered_plan.{get_plan_counter(_rplans_folder)+1}"
         shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)
         #TODO: decide whether this plan should be considered or not among top-k solutions
 
     os.remove(plan_filename + ".map_back")
-    
-    
+    f.close()

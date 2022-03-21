@@ -347,6 +347,22 @@ SearchEngine *OptionParser::parse_cmd_line_aux(
             ++i;
             OptionParser p(args[i], dry_run);
             engine = p.start_parsing<SearchEngine *>();
+        } else if (arg.compare("--domain-file") == 0) { // Domain-file accepted as parameter but no parsing required
+            if (is_last)
+                throw ArgError("missing argument after --domain-file");
+            ++i;
+        } else if (arg.compare("--problem-file") == 0) { // Problem-file accepted as parameter but no parsing required
+            if (is_last)
+                throw ArgError("missing argument after --problem-file");
+            ++i;
+        } else if (arg.compare("--k") == 0) { // K (number-of-plans) accepted as parameter but no parsing required
+            if (is_last)
+                throw ArgError("missing argument after --k");
+            ++i;
+        } else if (arg.compare("--check-relevance") == 0) { // Check relevance accepted as parameter but no parsing required
+            if (is_last)
+                throw ArgError("missing argument after --check-relevance");
+            ++i;
         } else if ((arg.compare("--help") == 0) && dry_run) {
             cout << "Help:" << endl;
             bool txt2tags = false;

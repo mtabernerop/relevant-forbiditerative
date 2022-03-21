@@ -3,7 +3,7 @@
 import re
 import subprocess
 import os, sys, json
-from threading import local
+
 
 
 def get_script():
@@ -20,14 +20,6 @@ def get_base_dir():
     """Assume that this script always lives in the base dir of the infrastructure."""
     return os.path.abspath(get_script_dir())
 
-def generate_tmp_found_plans_dir():
-    """Create a temporary folder to store the k iteratively found plans"""
-    local_folder = f"{get_base_dir()}/tmp-found-plans"
-    os.makedirs(local_folder)
-
-def get_tmp_found_plans_dir():
-    return get_base_dir() + "/tmp-found-plans"
-
 def make_call(command, time_limit, local_folder, enable_output=False):
     if (sys.version_info > (3, 0)):
         import subprocess
@@ -39,6 +31,7 @@ def make_call(command, time_limit, local_folder, enable_output=False):
     else:
         FNULL = open(os.devnull, 'w')
         subprocess.check_call(command, timeout=time_limit, cwd=local_folder,stdout=FNULL, stderr=subprocess.STDOUT)
+
 
 
 class PlannerCall(object):
@@ -101,7 +94,11 @@ class TopkReformulationPlannerCall(PlannerCall):
                "--search", "forbid_iterative(reformulate = FORBID_MULTIPLE_PLANS, \
                extend_plans_with_symmetry=sym,  reduce_plan_orders={reordering}, dump=false, \
                number_of_plans={num_remaining_plans},  change_operator_names=true,\
-               external_plan_file={external_plan_file})".format(**kwargs)]
+               external_plan_file={external_plan_file})".format(**kwargs),
+               "--domain-file", "%s" % (kwargs["domain_file"]),
+                "--problem-file", "%s" % (kwargs["problem_file"]),
+                "--k", "%s" % (kwargs["k"]),
+                "--check-relevance", "%s" % (kwargs["check-relevance"])]
 
 
 
@@ -127,7 +124,11 @@ class BaseCostOptimalPlannerCall(BasePlannerCall):
                 "sym=structural_symmetries(time_bound=0,search_symmetries=oss, \
                 stabilize_initial_state=false, keep_operator_symmetries=false)",
                 "--search",
-                "astar(%s, %s, symmetries=sym)" % (search_heur, shortest_opt) ]
+                "astar(%s, %s, symmetries=sym)" % (search_heur, shortest_opt),
+                "--domain-file", "%s" % (kwargs["domain_file"]),
+                "--problem-file", "%s" % (kwargs["problem_file"]),
+                "--k", "%s" % (kwargs["k"]),
+                "--check-relevance", "%s" % (kwargs["check-relevance"])]
 
 
 class BaseSatisficingPlannerCall(BasePlannerCall):

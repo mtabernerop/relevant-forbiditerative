@@ -70,9 +70,10 @@ private:
 protected:
 
     virtual void initialize() {}
-    virtual SearchStatus step() { return SOLVED; }
+    virtual SearchStatus step(int argc, const char **argv) { return SOLVED; }
 
     void reformulate_and_dump(bool optimal, std::vector<SearchEngine::Plan>& plans);
+    
 public:
     ForbidIterativeSearch(const options::Options &opts);
     virtual ~ForbidIterativeSearch();

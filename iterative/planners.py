@@ -38,6 +38,7 @@ class Planner(object):
         pcargs["domain_file"] = self._args.domain
         pcargs["problem_file"] = self._args.problem
         pcargs["k"] = self._args.number_of_plans
+        pcargs["check-relevance"] = "true"
 
         name = task_manager.get_current_task_path()
         if name is not None:
@@ -54,6 +55,8 @@ class Planner(object):
             logging.info("Removing local folder %s" % local_folder)
             if os.path.exists(local_folder):
                 shutil.rmtree(local_folder)
+
+
 
     def _finalize(self, plan_manager, folder):
         if self._args.plans_as_json:
@@ -84,7 +87,6 @@ class Planner(object):
         logging.debug("\t> \x1B[3mExternal planning\x1B[0m\t\t\t%s" % (_timers["external_planning"]))
         logging.debug("\t> \x1B[3mGlobal time\x1B[0m\t\t\t\t%s" % (self._timer))
 
-
     def report_done(self):
         logging.info("All iterations are done %s" % self._timer)
 
@@ -107,6 +109,7 @@ class Planner(object):
         return None
 
     def _enough_plans_found_number(self, plan_manager, up_to_best_known_bound):
+
         return plan_manager.get_number_valid_plans(up_to_best_known_bound) >= self._args.number_of_plans
 
     def _enough_plans_found_quality(self, plan_manager):
@@ -160,8 +163,13 @@ class TopKPlanner(Planner):
             pcargs["external_plan_file"] = plan_file
         pcargs["num_previous_plans"] = num_previous_plans
         pcargs["num_remaining_plans"] = num_remaining_plans
-
         pcargs["reordering"] = self._args.reordering
+
+        pcargs["domain_file"] = self._args.domain
+        pcargs["problem_file"] = self._args.problem
+        pcargs["k"] = self._args.number_of_plans
+        pcargs["check-relevance"] = "true"
+        
         pc = TopkReformulationPlannerCall()
         command = pc.get_callstring(**pcargs)
 
@@ -171,12 +179,15 @@ class TopKPlanner(Planner):
 
     def report_number_of_plans(self, plan_manager):
         plan_manager.report_number_of_plans(best_plans=False)
-    
+
     def report_number_of_valid_plans(self, plan_manager):
         plan_manager.report_number_of_valid_plans()
 
     """
     ORIGINAL FINALIZE FUNCTION
+    def report_number_of_plans(self, plan_manager):
+        plan_manager.report_number_of_plans(best_plans=False)
+
     def finalize(self, plan_manager):
         plan_manager.map_plans_back()
         dest = os.path.join(os.getcwd(), self._get_done_plans_dir())
@@ -260,12 +271,9 @@ class TopKPlanner(Planner):
         print_row += f"{row[-1]}"
 
         print("res:" + print_row)
-        
 
     def enough_plans_found(self, plan_manager):
-        num_plans = len([name for name in os.listdir(plan_manager._final_plans_folder) if not os.path.isdir(os.path.join(plan_manager._final_plans_folder, name))])
-        return num_plans >= self._args.number_of_plans
-        # return self._enough_plans_found(plan_manager, up_to_best_known_bound=True)
+        return self._enough_plans_found(plan_manager, up_to_best_known_bound=True)
 
 
 class TopKViaUnorderedTopQualityPlanner(Planner):
@@ -639,7 +647,7 @@ class TopQualityViaUnorderedTopQualityPlanner(Planner):
     def get_extend_plans_callstring(self,task_manager, plan_manager):
         plan_file = plan_manager.get_last_processed_plan()
         if plan_file is None:
-            logging.info("Plan manages has no plans")
+            logging.info("Plan manager has no plans")
             exit(1)
 
         if not os.path.exists(plan_file):

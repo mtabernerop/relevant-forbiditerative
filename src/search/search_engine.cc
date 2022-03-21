@@ -61,11 +61,11 @@ void SearchEngine::set_plan(const Plan &p) {
     plan = p;
 }
 
-void SearchEngine::search() {
+void SearchEngine::search(int argc, const char **argv) {
     initialize();
     utils::CountdownTimer timer(max_time);
     while (status == IN_PROGRESS) {
-        status = step();
+        status = step(argc, argv);
         if (timer.is_expired()) {
             cout << "Time limit reached. Abort search." << endl;
             status = TIMEOUT;
@@ -84,6 +84,7 @@ bool SearchEngine::check_goal_and_set_plan(const GlobalState &state,
         Plan plan;
         search_space.trace_path(state, plan, group);
         set_plan(plan);
+        
         return true;
     }
     return false;

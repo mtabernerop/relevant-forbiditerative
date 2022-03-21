@@ -3,11 +3,25 @@
 
 #include "utils/system.h"
 #include "utils/timer.h"
+#include <string.h>
 
 #include <iostream>
 
 using namespace std;
 using utils::ExitCode;
+
+/**
+ * @param argv
+ * 
+ * - argv[0]: executable (downward)
+ * - argv[2]: internal-previous-portfolio-plans
+ * - argv[4]: symmetries
+ * - argv[6]: search
+ * - argv[8]: domain-file
+ * - argv[10]: problem-file
+ * - argv[12]: number-of-plans 
+ * - argv[14]: internal-plan-file (default "sas_plan")
+ */
 
 int main(int argc, const char **argv) {
     utils::register_event_handlers();
@@ -21,7 +35,6 @@ int main(int argc, const char **argv) {
         read_everything(cin);
 
     SearchEngine *engine = nullptr;
-
     // The command line is parsed twice: once in dry-run mode, to
     // check for simple input errors, and then in normal mode.
     bool unit_cost = is_unit_cost();
@@ -38,7 +51,7 @@ int main(int argc, const char **argv) {
     }
 
     utils::Timer search_timer;
-    engine->search();
+    engine->search(argc, argv);
     search_timer.stop();
     utils::g_timer.stop();
 

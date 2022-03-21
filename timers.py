@@ -7,6 +7,7 @@ import os
 import sys
 import time
 
+
 class Timer(object):
     def __init__(self):
         self.start_time = time.time()
