@@ -144,3 +144,4 @@ if __name__ == "__main__":
         #TODO: decide whether this plan should be considered or not among top-k solutions
 
     os.remove(plan_filename + ".map_back")
+    
