@@ -18,9 +18,16 @@ class Action:
         def frozenset_of_tuples(data):
             _data = []
             for t in data:
+                _t = []
                 if t[0] == 'increase' or t[0] == 'decrease':
-                    t = [t[0]] + ['('] + t[1] + [')'] + ['('] + t[2] + [')']
-                _data += [t]
+                    _t = [t[0]] + ['('] + t[1] + [')']
+                    if isinstance(t[2], list):
+                        _t += ['('] +  t[2] + [')']
+                    else:
+                        _t += [t[2]]
+                else:
+                    _t = t
+                _data += [_t]
             return frozenset([tuple(t) for t in _data])
         self.name = name
         self.parameters = parameters

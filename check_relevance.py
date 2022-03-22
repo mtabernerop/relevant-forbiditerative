@@ -1,5 +1,4 @@
 from __future__ import print_function
-from plan import PLANNING_TIMER_FILE
 
 import timers
 import shutil
@@ -12,26 +11,21 @@ from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
 import logging
 
-PLANNING_TIMER_FILE = os.path.join(os.getcwd(), "planning_timer.txt")
-
 """
------------
-FILTER PLAN
------------
+---------------
+CHECK RELEVANCE
+---------------
 Script that detects if a plan is relevant.
 
-> Syscall: python filter_plans.py <domain> <problem> <plan> <cost> <number_of_plans>
+> Syscall: python check_relevance.py <domain> <problem> <plan> <cost> <number_of_plans>
 
-> Output: <elapsed_time>,<True/False>
+> Output: <true/false>
           
-          * elapsed_time: time spent on using independent planner over new planning task
           * True/False: returns whether <plan> is irrelevant (True) or relevant (False)
 """
 
-
-def get_plan_counter(folder, prefix):
-    return len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name)) and prefix in name])
-
+def get_plan_counter(folder):
+    return len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name)) and "ra_plan" in name])
 
 def parse_follow_plan_filename(name):
     directory, filename = os.path.split(name)
@@ -58,11 +52,18 @@ if __name__ == "__main__":
     # Result file
     result_filename = "is_relevant.txt"
     f = open(result_filename, "w")
+         
+    # mapping back reformulation additional information
+    copy_plans.map_back_fast_downward_plan_file(plan_filename, plan_filename + ".map_back")
 
-    # Planning timer file
-    t = open(PLANNING_TIMER_FILE, "r+")
-    timer_acc = float(t.readline().rstrip())
-    t.seek(0)
+    # parsing domain and problem to enforce following relevant actions
+    parse(domain, problem, plan_filename + ".map_back")
+    follow_plan_domain = parse_follow_plan_filename(domain)   # new generated domain
+    follow_plan_problem = parse_follow_plan_filename(problem) # new generated problem
+
+    # Result file
+    result_filename = "is_relevant.txt"
+    f = open(result_filename, "w")
          
     # mapping back reformulation additional information
     copy_plans.map_back_fast_downward_plan_file(plan_filename, plan_filename + ".map_back")
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     command = pc.get_callstring(**pcargs)
 
     local_folder = _rplans_folder
-    time_limit = limits.get_time_limit(None, 300) #TODO: verificar empíricamente si 5 minutos es suficiente para encontrar 1 plan
+    time_limit = limits.get_time_limit(None, 3000000) #TODO: verificar empíricamente si 5 minutos es suficiente para encontrar 1 plan
 
     try:
         _time1 = os.times()
@@ -107,15 +108,14 @@ if __name__ == "__main__":
         make_call(command, time_limit, local_folder)
         _time2 = os.times()
         _time2 = _time2[0] + _time2[1] + _time2[2] + _time2[3] # _timers["external_planning"].stop()
-        t.write(str(timer_acc+(_time2-_time1)))
-        t.truncate()
+        # print(f"{_time2 - _time1},", end="") # Uncomment if time is required
     except:
         raise
     
     # checking if a plan has been found by the independent planner
     if os.path.exists(f"{_rplans_folder}/sas_plan.1"):
         # sas_plan.1 > ra_plan.X
-        ra_plan_filename = f"{_rplans_folder}/ra_plan." + str(get_plan_counter(_rplans_folder, "ra_plan")+1)
+        ra_plan_filename = f"{_rplans_folder}/ra_plan.{get_plan_counter(_rplans_folder)+1}"
         os.rename(f"{_rplans_folder}/sas_plan.1", ra_plan_filename)
         # obtaining cost and problem type from relevant actions plan
         ra_cost, ra_problem_type = _parse_plan(ra_plan_filename)           
@@ -123,35 +123,12 @@ if __name__ == "__main__":
         # checking if the plan is valid (e.g. not incomplete)
         if ra_cost != None:
             # Plan found
-            if ra_cost < int(cost):
-                # irrelevant actions detected in plan
-                # plan_filename should not be considered among top-k solutions
-                
+            if ra_cost < int(cost):                
                 # inform that the found plan is not relevant
                 f.write("false")
-
-                # mapping back order parameters in actions
-                copy_plans.map_back_plan_order_parameters(ra_plan_filename)
-
-                # plan_filename > irrelevant plans folder
-                ia_plan_filename = f"{_iplans_folder}/ia_plan." + str(get_plan_counter(_iplans_folder, "ia_plan")+1)
-                shutil.copy(plan_filename + ".map_back", ia_plan_filename)
             else:
                 # inform that the found plan is relevant
                 f.write("true")
-
-                # no irrelevant actions detected in plan
-                # directory, filename = os.path.split(plan_filename + ".map_back")
-                # filename = filename.split(".")
-                # filename = f"{filename[0]}.{filename[1]}"
-                # filename = "sas_plan." + str(get_plan_counter(_rplans_folder, "ra_plan")+1)
-                # dest_filename = f"{_final_plans_folder}/{filename}"
-                # # sas_plan.X.map_back > ./topk_plans/sas_plan.X
-                # shutil.copy2(plan_filename + ".map_back", dest_filename)
-
-            # uncomment the following line to avoid saving (forced) relevant plans
-            # os.remove(ra_plan_filename)
-
     else:
         # inform that the plan could not be parsed
         f.write("unparsed")
@@ -162,13 +139,7 @@ if __name__ == "__main__":
         print("#####################")
         os.system(f"cat {follow_plan_problem}")
         print("#####################")
-        
-        # plan_filename > unfiltered plans folder
-        unfiltered_plan_filename = f"{_unfiltered_plans_folder}/unfiltered_plan." + str(get_plan_counter(_unfiltered_plans_folder, "unfiltered_plan")+1)
-        shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)
-        #TODO: decide whether this plan should be considered or not among top-k solutions
         exit(-1)
 
     os.remove(plan_filename + ".map_back")
     f.close()
-    t.close()

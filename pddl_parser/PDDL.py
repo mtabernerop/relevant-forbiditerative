@@ -421,6 +421,8 @@ def parse_functions(functions):
 def create_predicates(predicates, negative=False):
     preds = ''
     for predicate in predicates:
+        if not predicate:
+            break
         preds += '\n'
         if negative:
             preds += ' (not'

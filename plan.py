@@ -6,10 +6,8 @@ import argparse
 import sys
 from driver import limits, arguments
 import subprocess
-
 import glob, os
 import logging
-
 import timers
 
 import copy_plans
@@ -19,12 +17,18 @@ from iterative import plan_manager as pm
 from iterative import task_manager as tm
 from iterative import planners
 
+PLANNING_TIMER_FILE = os.path.join(os.getcwd(), "planning_timer.txt")
+
 def create_timers():
+    # create independent planning timer
+    t = open(PLANNING_TIMER_FILE, "w")
+    t.write("0")
+    t.close()
+    # return rest of timers
     return {
         "planning": timers.ManualTimer(),
         "task_reformulation": timers.ManualTimer(),
-        "extending_plans": timers.ManualTimer(),
-        "external_planning": timers.ManualTimer()
+        "extending_plans": timers.ManualTimer()
     }
 
 def get_planner(args):
@@ -81,14 +85,16 @@ def find_plans(args):
         logging.warning("Timeout expired. End of execution.")
         planner.report_iteration_step(plan_manager, success=False)
         # planner.finalize(plan_manager)
-        planner.cleanup(plan_manager)
-        planner.report_done()
         planner.finalize(args, plan_manager, _timers)
+        planner.cleanup(plan_manager)
+        # planner.report_done()
         exit(0)
     except:
         planner.report_iteration_step(plan_manager, success=False)
         # planner.finalize(plan_manager)
+        planner.finalize(args, plan_manager, _timers)
         planner.cleanup(plan_manager)
+        # planner.report_done()
         raise
     logging.debug("End of planner call\n")
 
@@ -131,14 +137,16 @@ def find_plans(args):
             logging.warning("Timeout expired. End of execution.")
             planner.report_iteration_step(plan_manager, success=False)
             # planner.finalize(plan_manager)
-            planner.cleanup(plan_manager)
-            planner.report_done()
             planner.finalize(args, plan_manager, _timers)
+            planner.cleanup(plan_manager)
+            # planner.report_done()
             exit(0)
         except:
             planner.report_iteration_step(plan_manager, success=False)
             # planner.finalize(plan_manager)
+            planner.finalize(args, plan_manager, _timers)
             planner.cleanup(plan_manager)
+            # planner.report_done()
             raise
         
         plan_manager.process_new_plans(args, planner, _timers)
@@ -168,14 +176,16 @@ def find_plans(args):
         logging.warning("Timeout expired. End of execution.")
         planner.report_iteration_step(plan_manager, success=False)
         # planner.finalize(plan_manager)
-        planner.cleanup(plan_manager)
-        planner.report_done()
         planner.finalize(args, plan_manager, _timers)
+        planner.cleanup(plan_manager)
+        # planner.report_done()
         exit(0)
     except:
         planner.report_iteration_step(plan_manager, success=False)
         # planner.finalize(plan_manager)
+        planner.finalize(args, plan_manager, _timers)
         planner.cleanup(plan_manager)
+        # planner.report_done()
         raise
     logging.debug("End of task reformulation\n")
     
@@ -210,14 +220,16 @@ def find_plans(args):
             logging.warning("Timeout expired. End of execution.")
             planner.report_iteration_step(plan_manager, success=False)
             # planner.finalize(plan_manager)
-            planner.cleanup(plan_manager)
-            planner.report_done()
             planner.finalize(args, plan_manager, _timers)
+            planner.cleanup(plan_manager)
+            # planner.report_done()
             exit(0)
         except:
             planner.report_iteration_step(plan_manager, success=False)
             # planner.finalize(plan_manager)
+            planner.finalize(args, plan_manager, _timers)
             planner.cleanup(plan_manager)
+            # planner.report_done()
             raise
         logging.debug("End of planner call\n")
 
@@ -251,14 +263,16 @@ def find_plans(args):
                 logging.warning("Timeout expired. End of execution.")
                 planner.report_iteration_step(plan_manager, success=False)
                 # planner.finalize(plan_manager)
-                planner.cleanup(plan_manager)
-                planner.report_done()
                 planner.finalize(args, plan_manager, _timers)
+                planner.cleanup(plan_manager)
+                # planner.report_done()
                 exit(0)
             except:
                 planner.report_iteration_step(plan_manager, success=False)
                 # planner.finalize(plan_manager)
+                planner.finalize(args, plan_manager, _timers)
                 planner.cleanup(plan_manager)
+                # planner.report_done()
                 raise
 
             plan_manager.process_new_plans(args, planner, _timers)
@@ -288,14 +302,16 @@ def find_plans(args):
             logging.warning("Timeout expired. End of execution.")
             planner.report_iteration_step(plan_manager, success=False)
             # planner.finalize(plan_manager)
-            planner.cleanup(plan_manager)
-            planner.report_done()
             planner.finalize(args, plan_manager, _timers)
+            planner.cleanup(plan_manager)
+            # planner.report_done()
             exit(0)
         except:
             planner.report_iteration_step(plan_manager, success=False)
             # planner.finalize(plan_manager)
+            planner.finalize(args, plan_manager, _timers)
             planner.cleanup(plan_manager)
+            # planner.report_done()
             raise
         logging.debug("End of task reformulation\n")
         
@@ -312,9 +328,9 @@ def find_plans(args):
         planner.report_iteration_step(plan_manager, success=True)
 
     # planner.finalize(plan_manager)
-    planner.cleanup(plan_manager)
-    planner.report_done()
     planner.finalize(args, plan_manager, _timers)
+    planner.cleanup(plan_manager)
+    # planner.report_done()
 
 
 def validate_input(args):

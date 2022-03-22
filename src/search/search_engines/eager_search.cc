@@ -147,7 +147,7 @@ SearchStatus EagerSearch::step(int argc, const char **argv) {
         return FAILED;
     }
     SearchNode node = n.first;
-
+    
     // Getting indexes for domain filename, problem filename and number of plans
     int domain_index = -1, problem_index = -1, num_plans_index = -1, check_relevance_index = -1;
     for (int i = 0; i < argc; i++){
@@ -209,20 +209,17 @@ SearchStatus EagerSearch::step(int argc, const char **argv) {
             // Restoring the working directory
             chdir(cwd);
 
-            cout << "***********************************************************************" << endl;
-            if (result.compare("true") == 0) {
-                cout << "1" << endl;
-            } else if (result.compare("false") == 0) {
-                cout << "2" << endl;
-            } else {
-                cout << result << endl;
-            }
-            cout << "***********************************************************************" << endl;
-
             // If the found plan is relevant, return SOLVED. Else, continue searching         
-            if (result.compare("true") == 0) return SOLVED;
-            else cout << "Found plan contains irrelevant actions" << endl;
-
+            if (result.compare("true") == 0) {
+                cout << "Found plan is relevant" << endl;
+                return SOLVED;
+            } else if (result.compare("false") == 0) {
+                cout << "Found plan contains irrelevant actions" << endl;
+                return IN_PROGRESS;
+            } else {
+                cout << "Found plan could not be filtered" << endl;
+                exit(-1);
+            }
         } else {
             return SOLVED;
         }

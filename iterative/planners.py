@@ -12,6 +12,8 @@ import time
 from planner_call import get_base_dir, BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, CerberusPlannerCall, TopqReformulationPlannerCall, TopkReformulationPlannerCall, DiverseReformulationPlannerCall, AdditionalPlansPlannerCall, make_call
 from . import plan_manager as pm
 
+PLANNING_TIMER_FILE = os.path.join(os.getcwd(), "planning_timer.txt")
+
 class Planner(object): 
     def __init__(self, args):
         self._iterationStep = 1
@@ -52,7 +54,7 @@ class Planner(object):
     def cleanup(self, plan_manager):
         if self._args.use_local_folder and self._args.clean_local_folder:
             local_folder = plan_manager.get_plans_folder()
-            logging.info("Removing local folder %s" % local_folder)
+            # logging.info("Removing local folder %s" % local_folder)
             if os.path.exists(local_folder):
                 shutil.rmtree(local_folder)
 
@@ -72,7 +74,7 @@ class Planner(object):
                 raise
             """
 
-    def report_statistics(self, relevant_plans, irrelevant_plans, unfiltered_plans, processed_plans, _timers):
+    def report_statistics(self, relevant_plans, irrelevant_plans, unfiltered_plans, processed_plans, _timers, external_planning_time):
         print("\n")
         logging.debug("\033[1mSTATISTICS\033[0m")
         logging.debug("Plans:")
@@ -84,7 +86,7 @@ class Planner(object):
         logging.debug("\t> \x1B[3mIndividual planning\x1B[0m\t\t\t%s" % (_timers["planning"]))
         logging.debug("\t> \x1B[3mExtending plans\x1B[0m\t\t\t%s" % (_timers["extending_plans"]))
         logging.debug("\t> \x1B[3mTask reformulation\x1B[0m\t\t\t%s" % (_timers["task_reformulation"]))
-        logging.debug("\t> \x1B[3mExternal planning\x1B[0m\t\t\t%s" % (_timers["external_planning"]))
+        logging.debug("\t> \x1B[3mExternal planning\x1B[0m\t\t\t%s" % (external_planning_time))
         logging.debug("\t> \x1B[3mGlobal time\x1B[0m\t\t\t\t%s" % (self._timer))
 
     def report_done(self):
@@ -183,6 +185,21 @@ class TopKPlanner(Planner):
     def report_number_of_valid_plans(self, plan_manager):
         plan_manager.report_number_of_valid_plans()
 
+    def finalize_plans(self, plan_manager):
+        plan_manager.map_plans_back()
+        dest = plan_manager._final_plans_folder
+        if self._args.use_local_folder:
+            ## Copying best plans to current work dir
+            logging.info("Copying back to current work directory")
+            if not os.path.exists(dest):
+                os.makedirs(dest)
+                
+            for plan in plan_manager.get_best_local_plans():
+                logging.debug("copying %s to %s" % (plan, dest))
+                shutil.copy2(plan, dest)
+
+        self._finalize(plan_manager, dest)
+
     """
     ORIGINAL FINALIZE FUNCTION
     def report_number_of_plans(self, plan_manager):
@@ -206,6 +223,9 @@ class TopKPlanner(Planner):
     def finalize(self, args, plan_manager, _timers):
         for _name, _timer in _timers.items():
             _timer.stop()
+
+        # Copying plans
+        self.finalize_plans(plan_manager)
 
         results_file = f"{os.getcwd()}/results.csv"
         if not os.path.exists(results_file):
@@ -232,8 +252,15 @@ class TopKPlanner(Planner):
 
         global_time = time.time() - self._timer.start_time
         parser = PDDL_Parser()
-        domain = parser.get_domain_name(args.domain)
-        # problem = parser.get_problem_name(args.problem)
+
+        # independent planning timer
+        t = open(PLANNING_TIMER_FILE, "r")
+        os.system(f"cat {PLANNING_TIMER_FILE}")
+        external_planning_time = float(t.readline().rstrip())
+        t.close()
+        
+        # removing planning timer file
+        os.remove(PLANNING_TIMER_FILE)
 
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)
@@ -253,12 +280,12 @@ class TopKPlanner(Planner):
             _timers["planning"]._elapsed_clock,
             _timers["extending_plans"]._elapsed_clock,
             _timers["task_reformulation"]._elapsed_clock,
-            _timers["external_planning"]._elapsed_clock,
+            external_planning_time,
             global_time,
             _timers["planning"]._elapsed_clock/global_time,
             _timers["extending_plans"]._elapsed_clock/global_time,
             _timers["task_reformulation"]._elapsed_clock/global_time,
-            _timers["external_planning"]._elapsed_clock/global_time
+            external_planning_time/global_time
         ]
         writer.writerow(row)
         f.close()

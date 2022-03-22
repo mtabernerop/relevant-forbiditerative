@@ -11,3 +11,6 @@ results
 
 # Pycache
 __pycache__
+
+# Is relevant text file
+is_relevant.txt
