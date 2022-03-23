@@ -1,5 +1,4 @@
 from __future__ import print_function
-from plan import PLANNING_TIMER_FILE
 
 import timers
 import shutil
