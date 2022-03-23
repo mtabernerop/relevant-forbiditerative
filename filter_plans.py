@@ -12,7 +12,7 @@ from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
 import logging
 
-PLANNING_TIMER_FILE = os.path.join(os.getcwd(), "planning_timer.txt")
+PLANNING_TIMER_FILE = "planning_timer.txt"
 
 """
 -----------

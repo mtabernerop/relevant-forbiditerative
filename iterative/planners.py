@@ -12,7 +12,7 @@ import time
 from planner_call import get_base_dir, BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, CerberusPlannerCall, TopqReformulationPlannerCall, TopkReformulationPlannerCall, DiverseReformulationPlannerCall, AdditionalPlansPlannerCall, make_call
 from . import plan_manager as pm
 
-PLANNING_TIMER_FILE = os.path.join(os.getcwd(), "planning_timer.txt")
+PLANNING_TIMER_FILE = "../planning_timer.txt"
 
 class Planner(object): 
     def __init__(self, args):
