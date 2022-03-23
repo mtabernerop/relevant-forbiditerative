@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Numbers to words
 # Avoid using 'num2words' module
 
