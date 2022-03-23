@@ -48,9 +48,11 @@ if __name__ == "__main__":
 
     # Obtaining folder names
     parser = PDDL_Parser()
+    dom_filename = domain.split("/")[-2]
     prob_dir, prob_filename = os.path.split(problem)
     prob_filename, prob_ext = os.path.splitext(prob_filename)
-    _final_plans_folder = get_base_dir() + '/results/' + parser.get_domain_name(domain) + "-" + prob_filename + "-" + str(number_of_plans)
+
+    _final_plans_folder = get_base_dir() + '/results/' + dom_filename + "-" + prob_filename + "-" + str(number_of_plans)
     _rplans_folder = _final_plans_folder + '/forced_relevant_plans'
     _iplans_folder = _final_plans_folder + '/filtered_plans'
     _unfiltered_plans_folder = _final_plans_folder + '/unfiltered_plans'
