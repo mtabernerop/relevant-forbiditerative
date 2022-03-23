@@ -250,12 +250,11 @@ class TopKPlanner(Planner):
         irrelevant_plans_pctg = irrelevant_plans/processed_plans if processed_plans > 0 else 0
         unfiltered_plans_pctg = unfiltered_plans/processed_plans if processed_plans > 0 else 0
 
-        global_time = time.time() - self._timer.start_time
-        parser = PDDL_Parser()
+        # external planning time contained in "planning"
+        global_time = _timers["planning"]._elapsed_clock + _timers["extending_plans"]._elapsed_clock + _timers["task_reformulation"]._elapsed_clock
 
         # independent planning timer
         t = open(PLANNING_TIMER_FILE, "r")
-        os.system(f"cat {PLANNING_TIMER_FILE}")
         external_planning_time = float(t.readline().rstrip())
         t.close()
         
@@ -266,7 +265,6 @@ class TopKPlanner(Planner):
         writer = csv.writer(f)
         row = [
             os.path.basename(args.domain),
-            # problem,
             os.path.basename(args.problem),
             args.number_of_plans,
             self._iterationStep-1,
