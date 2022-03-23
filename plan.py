@@ -17,7 +17,7 @@ from iterative import plan_manager as pm
 from iterative import task_manager as tm
 from iterative import planners
 
-PLANNING_TIMER_FILE = "planning_timer.txt"
+PLANNING_TIMER_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "planning_timer.txt")
 
 def create_timers():
     # create independent planning timer

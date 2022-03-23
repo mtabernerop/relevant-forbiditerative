@@ -11,7 +11,7 @@ from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
 import logging
 
-PLANNING_TIMER_FILE = "planning_timer.txt"
+PLANNING_TIMER_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "planning_timer.txt")
 
 """
 -----------
@@ -62,6 +62,9 @@ if __name__ == "__main__":
 
     # Planning timer file
     t = open(PLANNING_TIMER_FILE, "r+")
+    print("###############")
+    print(PLANNING_TIMER_FILE)
+    print("###############")
     timer_acc = float(t.readline().rstrip())
     t.seek(0)
          
