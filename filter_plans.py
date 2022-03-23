@@ -12,16 +12,14 @@ from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
 import logging
 
-PLANNING_TIMER_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "planning_timer.txt")
+PLANNING_TIMER_FILE = os.path.join(get_base_dir(), "planning_timer.txt")
 
 """
 -----------
 FILTER PLAN
 -----------
 Script that detects if a plan is relevant.
-
 > Syscall: python filter_plans.py <domain> <problem> <plan> <cost> <number_of_plans>
-
 > Output: <elapsed_time>,<True/False>
           
           * elapsed_time: time spent on using independent planner over new planning task
@@ -40,8 +38,10 @@ def parse_follow_plan_filename(name):
     return file
 
 if __name__ == "__main__":
-    domain = sys.argv[1]
-    problem = sys.argv[2]
+    # domain = sys.argv[1]
+    # problem = sys.argv[2]
+    domain = os.path.dirname(get_base_dir()) + sys.argv[1]
+    problem = os.path.dirname(get_base_dir()) + sys.argv[2]
     plan_filename = sys.argv[3]
     cost = sys.argv[4]
     number_of_plans = sys.argv[5]
