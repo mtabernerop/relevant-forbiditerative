@@ -62,9 +62,6 @@ if __name__ == "__main__":
 
     # Planning timer file
     t = open(PLANNING_TIMER_FILE, "r+")
-    print("###############")
-    print(PLANNING_TIMER_FILE)
-    print("###############")
     timer_acc = float(t.readline().rstrip())
     t.seek(0)
          
