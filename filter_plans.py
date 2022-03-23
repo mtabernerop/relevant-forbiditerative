@@ -40,8 +40,8 @@ def parse_follow_plan_filename(name):
 if __name__ == "__main__":
     # domain = sys.argv[1]
     # problem = sys.argv[2]
-    domain = os.path.dirname(get_base_dir()) + sys.argv[1]
-    problem = os.path.dirname(get_base_dir()) + sys.argv[2]
+    domain = os.path.join(os.path.dirname(get_base_dir()), sys.argv[1])
+    problem = os.path.join(os.path.dirname(get_base_dir()), sys.argv[2])
     plan_filename = sys.argv[3]
     cost = sys.argv[4]
     number_of_plans = sys.argv[5]
