@@ -3,6 +3,8 @@
 
 import itertools
 
+SPECIAL_PREDICATES = ["increase" ,"decrease", "forall", "minimize", "maximize"]
+
 class PlanAction:
     def __init__(self, name, objects):
         self.name = name;
@@ -19,12 +21,8 @@ class Action:
             _data = []
             for t in data:
                 _t = []
-                if t[0] == 'increase' or t[0] == 'decrease':
-                    _t = [t[0]] + ['('] + t[1] + [')']
-                    if isinstance(t[2], list):
-                        _t += ['('] +  t[2] + [')']
-                    else:
-                        _t += [t[2]]
+                if t[0] in SPECIAL_PREDICATES:
+                    _t = ground_array(list(), t)
                 else:
                     _t = t
                 _data += [_t]
@@ -100,6 +98,24 @@ class Action:
                 iv += 1
             g.append(pred)
         return g
+    
+#-----------------------------------------------
+# Ground array
+#-----------------------------------------------
+def ground_array(arr, array):
+    if arr and not array[0] in SPECIAL_PREDICATES:
+        arr.append("(")
+
+    for elem in array:
+        if not isinstance(elem, list):
+            arr.append(elem)
+        else:
+            ground_array(arr, elem)
+
+    if arr and not array[0] in SPECIAL_PREDICATES:
+        arr.append(")")
+
+    return arr
 
 #-----------------------------------------------
 # Main

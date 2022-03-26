@@ -170,6 +170,9 @@ if __name__ == "__main__":
         shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)
         #TODO: decide whether this plan should be considered or not among top-k solutions
         exit(-1)
+    
+    os.remove(follow_plan_domain)
+    os.remove(follow_plan_problem)
 
     os.remove(plan_filename + ".map_back")
     f.close()
