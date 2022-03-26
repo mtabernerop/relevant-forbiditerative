@@ -12,7 +12,6 @@ def get_script():
 
 def get_script_dir():
     """Get directory of main script.
-
     Usually a relative directory (depends on how it was called by the user.)"""
     return os.path.dirname(get_script())
 
@@ -94,11 +93,7 @@ class TopkReformulationPlannerCall(PlannerCall):
                "--search", "forbid_iterative(reformulate = FORBID_MULTIPLE_PLANS, \
                extend_plans_with_symmetry=sym,  reduce_plan_orders={reordering}, dump=false, \
                number_of_plans={num_remaining_plans},  change_operator_names=true,\
-               external_plan_file={external_plan_file})".format(**kwargs),
-               "--domain-file", "%s" % (kwargs["domain_file"]),
-                "--problem-file", "%s" % (kwargs["problem_file"]),
-                "--k", "%s" % (kwargs["k"]),
-                "--check-relevance", "%s" % (kwargs["check-relevance"])]
+               external_plan_file={external_plan_file})".format(**kwargs)]
 
 
 
@@ -124,11 +119,7 @@ class BaseCostOptimalPlannerCall(BasePlannerCall):
                 "sym=structural_symmetries(time_bound=0,search_symmetries=oss, \
                 stabilize_initial_state=false, keep_operator_symmetries=false)",
                 "--search",
-                "astar(%s, %s, symmetries=sym)" % (search_heur, shortest_opt),
-                "--domain-file", "%s" % (kwargs["domain_file"]),
-                "--problem-file", "%s" % (kwargs["problem_file"]),
-                "--k", "%s" % (kwargs["k"]),
-                "--check-relevance", "%s" % (kwargs["check-relevance"])]
+                "astar(%s, %s, symmetries=sym)" % (search_heur, shortest_opt) ]
 
 
 class BaseSatisficingPlannerCall(BasePlannerCall):

@@ -25,7 +25,7 @@ class IteratedSearch : public SearchEngine {
     std::unique_ptr<SearchEngine> create_phase(int phase);
     SearchStatus step_return_value();
 
-    virtual SearchStatus step(int argc, const char **argv) override;
+    virtual SearchStatus step() override;
 
 public:
     explicit IteratedSearch(const options::Options &opts);

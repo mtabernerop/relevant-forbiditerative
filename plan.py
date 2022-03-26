@@ -2,6 +2,7 @@
 #./plan_topk.sh domains/blocks-world/domain.pddl domains/blocks-world/p3.pddl 5
 
 import argparse
+from asyncio import create_task
 
 import sys
 from driver import limits, arguments
@@ -31,6 +32,7 @@ def create_timers():
         "extending_plans": timers.ManualTimer()
     }
 
+
 def get_planner(args):
     ### TODO: Get the actual planner from args
     if args.planner == "topk":
@@ -54,7 +56,7 @@ def get_planner(args):
 def find_plans(args):
     # initializing timers
     _timers = create_timers()
-
+    
     planner = get_planner(args)
     enable_planners_output = True # set to True to show planners' output on console
     if args.suppress_planners_output:
@@ -68,6 +70,9 @@ def find_plans(args):
 
     plan_manager = planner.get_plan_manager(args, local_folder)
     plan_manager.create_plan_folders()
+
+    # creating task details file
+    plan_manager.create_task_details(args)
 
     # plan_manager.delete_existing_plans()
     # plan_manager.delete_additional_plans()
@@ -97,7 +102,7 @@ def find_plans(args):
         # planner.report_done()
         raise
     logging.debug("End of planner call\n")
-
+    
     num_plans_processed = plan_manager.process_new_plans(args, planner, _timers)
     planner.report_done_external_planner_run()
     planner.report_number_of_plans(plan_manager)

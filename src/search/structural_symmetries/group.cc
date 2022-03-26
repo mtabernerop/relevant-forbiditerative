@@ -180,6 +180,7 @@ void Group::statistics() const {
             cout << ", ";
     }
     cout << "]" << endl;
+
     if (dump) {
     	dump_generators();
     	dump_variables_equivalence_classes();

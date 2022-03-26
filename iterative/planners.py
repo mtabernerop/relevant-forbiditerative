@@ -39,8 +39,6 @@ class Planner(object):
         pcargs = kwargs
         pcargs["domain_file"] = self._args.domain
         pcargs["problem_file"] = self._args.problem
-        pcargs["k"] = self._args.number_of_plans
-        pcargs["check-relevance"] = "true"
 
         name = task_manager.get_current_task_path()
         if name is not None:
@@ -129,6 +127,26 @@ class Planner(object):
 ###################################################################################################
 #####  Top-k planners
 
+def _include_relevance(task_details):
+    content = ""
+    with open(task_details, 'r') as f:
+        content = f.readlines()
+
+    if not any("check-relevance" in line for line in content):
+        with open(task_details, 'a') as f:
+            f.write("check-relevance\n")
+
+def _remove_relevance(task_details):
+    content = ""
+    with open(task_details, 'r') as f:
+        content = f.readlines()
+
+    with open(task_details, 'w') as f:
+        for line in content:
+            if not "check-relevance" in line:
+                f.write(line)
+
+
 class TopKPlanner(Planner):
     def get_plan_manager(self, args, local_folder):
         return pm.PlanManager(args, "sas_plan", local_folder, compute_best_known=True)
@@ -137,9 +155,11 @@ class TopKPlanner(Planner):
         self._report_iteration_step(plan_manager.get_number_valid_plans(up_to_best_known_bound=True), success)
 
     def get_planner_callstring(self, task_manager, plan_manager, time_limit):
+        _include_relevance(plan_manager.get_task_details_filename())
         return self._get_planner_callstring(BaseCostOptimalPlannerCall(), task_manager, plan_manager, time_limit, shortest=False, consistent=False)
 
     def get_reformulation_callstring(self, task_manager, plan_manager, external_plan_file=None):
+        _include_relevance(plan_manager.get_task_details_filename())
         plan_file = plan_manager.get_last_processed_plan()
         if plan_file is None:
             logging.info("Plan manager has no plans")
@@ -165,13 +185,8 @@ class TopKPlanner(Planner):
             pcargs["external_plan_file"] = plan_file
         pcargs["num_previous_plans"] = num_previous_plans
         pcargs["num_remaining_plans"] = num_remaining_plans
-        pcargs["reordering"] = self._args.reordering
 
-        pcargs["domain_file"] = self._args.domain
-        pcargs["problem_file"] = self._args.problem
-        pcargs["k"] = self._args.number_of_plans
-        pcargs["check-relevance"] = "true"
-        
+        pcargs["reordering"] = self._args.reordering
         pc = TopkReformulationPlannerCall()
         command = pc.get_callstring(**pcargs)
 
@@ -260,6 +275,8 @@ class TopKPlanner(Planner):
         
         # removing planning timer file
         os.remove(PLANNING_TIMER_FILE)
+        # removing task details file
+        os.remove(plan_manager.get_task_details_filename())
 
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)

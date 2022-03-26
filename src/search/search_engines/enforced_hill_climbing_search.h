@@ -59,7 +59,7 @@ class EnforcedHillClimbingSearch : public SearchEngine {
 
 protected:
     virtual void initialize() override;
-    virtual SearchStatus step(int argc, const char **argv) override;
+    virtual SearchStatus step() override;
 
 public:
     explicit EnforcedHillClimbingSearch(const options::Options &opts);

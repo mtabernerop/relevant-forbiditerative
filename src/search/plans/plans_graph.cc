@@ -843,16 +843,16 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
 			std::reverse(current_plan.begin(),current_plan.end());
 			cout << "Reconstruction done, saving plan" << endl;
 			if (!optimal || node->plan_cost == best_plan_cost) {
-			    std::pair<PlansSet::iterator, bool > result = optimal_plans.insert(current_plan);
-			    if (result.second) {
-			        save_plan(current_plan, true);
+				std::pair<PlansSet::iterator, bool > result = optimal_plans.insert(current_plan);
+				if (result.second) {
+					save_plan(current_plan, true);
 					cout << "Plan cost: " << best_plan_cost << endl;
-			    }
+				}
 			} else {
 				non_optimal_plans.insert(current_plan);
 				cout << "Found non optimal plan" << endl;
 			}
-			//continue;
+		//continue;
 		}
 	    priority_queues::AdaptiveQueue<pair<int,StateID>> priority_queue;
 	    assert(priority_queue.empty());

@@ -49,9 +49,10 @@ int main(int argc, const char **argv) {
         cerr << error << endl;
         utils::exit_with(ExitCode::INPUT_ERROR);
     }
-
+    
     utils::Timer search_timer;
-    engine->search(argc, argv);
+    cout << "########################################################################## paso" << endl;
+    engine->search();
     search_timer.stop();
     utils::g_timer.stop();
 

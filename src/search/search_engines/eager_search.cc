@@ -1,6 +1,5 @@
-#include <filesystem>
-
 #include "eager_search.h"
+
 #include "search_common.h"
 #include "../evaluation_context.h"
 #include "../globals.h"
@@ -140,74 +139,68 @@ void EagerSearch::print_statistics() const {
     pruning_method->print_statistics();
 }
 
-SearchStatus EagerSearch::step(int argc, const char **argv) {
+vector<string> read_task_details(string file_path){
+    vector<string> content;
+    fstream file;
+    file.open(file_path);
+    if (file.is_open()) {
+        string line;
+        while(getline(file, line))
+            content.push_back(line);
+        file.close();
+    }
+    return content;
+}
 
+SearchStatus EagerSearch::step() {
     pair<SearchNode, bool> n = fetch_next_node();
     if (!n.second) {
         return FAILED;
     }
     SearchNode node = n.first;
-    
-    // Getting indexes for domain filename, problem filename and number of plans
-    int domain_index = -1, problem_index = -1, num_plans_index = -1, check_relevance_index = -1;
-    for (int i = 0; i < argc; i++){
-        if (strcmp(argv[i], "--domain-file") == 0)
-            domain_index = i+1;
-        else if (strcmp(argv[i], "--problem-file") == 0)
-            problem_index = i+1;
-        else if (strcmp(argv[i], "--k") == 0)
-            num_plans_index = i+1;
-        else if (strcmp(argv[i], "--check-relevance") == 0)
-            check_relevance_index = i+1;
-    }
+
+    // Reading task details
+    char cwdir[256]; 
+    getcwd(cwdir, 256); // current working directory
+    string cwdir_str(cwdir);
+    vector<string> task_details = read_task_details(cwdir_str + "/task_details.txt");
 
     GlobalState s = node.get_state();
     if (check_goal_and_set_plan(s, group)) {
-        if (string(argv[check_relevance_index]).compare("true") == 0) {
+        if (find(task_details.begin(), task_details.end(), "check-relevance") != task_details.end()){
             // Obtaining current plan and plan cost
             auto current_plan = get_plan();
-            int cost = 0;
-            // Current working directory
+            int cost = node.get_g();
+
+            // Current plan directory
             char plan_dir[256];
-            getcwd(plan_dir, 256);
+            strcpy(plan_dir, cwdir);
+
             // Storing the plan actions into "current_plan.pddl"
             ofstream outfile(strcat(plan_dir, "/current_plan.pddl"));
             for (size_t i = 0; i < current_plan.size(); ++i) {
                 // Escribir a fichero abierto - outfile
                 outfile << "(" << current_plan[i]->get_name() << ")" << endl;
-                cost += current_plan[i]->get_cost();
             }
 
-            char cwd[256];
-            getcwd(cwd, 256);
-            string downward_dir = argv[0];
-            int start_pos_to_erase = downward_dir.find("/builds/release/bin/downward");
-            string fi_path = downward_dir.erase(start_pos_to_erase);
-            
-            // Changing the current working directory to forbiditerative
-            chdir(fi_path.c_str());
-
             // Filtering the current plan
-            string syscall = "python filter_plans.py " + 
-                                                            string(argv[domain_index]) +
-                                                        " " + string(argv[problem_index]) +
+            string syscall = "python " + task_details[0] + "/filter_plans.py"
+                                                        " " + string(task_details[1]) +
+                                                        " " + string(task_details[2]) +
                                                         " " + string(plan_dir) +
                                                         " " + to_string(cost) +
-                                                        " " + string(argv[num_plans_index]);
-            
+                                                        " " + string(task_details[3]);
+
             // System call
-            system(syscall.c_str());
+            system(syscall.c_str());           
 
             // Reading the obtained result
             ifstream file;
-            file.open(strcat(const_cast<char*>(fi_path.c_str()), "/is_relevant.txt"));
+            file.open(cwdir_str + "/is_relevant.txt");
             string result;
             
             getline(file, result);
             file.close();
-
-            // Restoring the working directory
-            chdir(cwd);
 
             // If the found plan is relevant, return SOLVED. Else, continue searching         
             if (result.compare("true") == 0) {
@@ -224,7 +217,7 @@ SearchStatus EagerSearch::step(int argc, const char **argv) {
             return SOLVED;
         }
     }
-    
+
     vector<const GlobalOperator *> applicable_ops;
     g_successor_generator->generate_applicable_ops(s, applicable_ops);
 

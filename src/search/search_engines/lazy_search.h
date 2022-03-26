@@ -43,7 +43,7 @@ protected:
     EvaluationContext current_eval_context;
 
     virtual void initialize() override;
-    virtual SearchStatus step(int argc, const char **argv) override;
+    virtual SearchStatus step() override;
 
     void generate_successors();
     SearchStatus fetch_next_state();

@@ -256,6 +256,23 @@ class PlanManager(object):
                 shutil.rmtree(folder)
             os.mkdir(folder) 
 
+    def create_task_details(self, args):
+        """
+        line 0: domain_filename
+        line 1: problem_filename
+        line 2: number_of_plans (k)
+        """
+        task_details_filename = os.path.join(self.get_plans_folder(), 'task_details.txt')
+        # create task details file
+        with open(task_details_filename, "a") as t:
+            t.write(os.getcwd() + "\n")
+            t.write(args.domain + "\n")
+            t.write(args.problem + "\n")
+            t.write(str(args.number_of_plans) + "\n")
+    
+    def get_task_details_filename(self):
+        return os.path.join(self.get_plans_folder(), 'task_details.txt')
+
     def _get_local_plan_file(self, number):
         return self._get_plan_file(number, subfolder=None)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from unittest import result
 
 import timers
 import shutil
@@ -10,6 +11,7 @@ from driver import limits
 from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, make_call, get_base_dir
 from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
+from iterative.planners import _remove_relevance
 import logging
 
 PLANNING_TIMER_FILE = os.path.join(get_base_dir(), "planning_timer.txt")
@@ -38,13 +40,20 @@ def parse_follow_plan_filename(name):
     return file
 
 if __name__ == "__main__":
-    # domain = sys.argv[1]
-    # problem = sys.argv[2]
-    domain = os.path.join(os.path.dirname(get_base_dir()), sys.argv[1])
-    problem = os.path.join(os.path.dirname(get_base_dir()), sys.argv[2])
+    if not sys.argv[1].startswith("/"):
+        domain = os.path.join(os.path.dirname(get_base_dir()), sys.argv[1])
+    else:
+        domain = sys.argv[1]
+    if not sys.argv[2].startswith("/"):
+        problem = os.path.join(os.path.dirname(get_base_dir()), sys.argv[2])
+    else:
+        problem = sys.argv[2]
     plan_filename = sys.argv[3]
     cost = sys.argv[4]
     number_of_plans = sys.argv[5]
+
+    # removing filtering parameter
+    # _remove_relevance(os.path.join(os.path.dirname(plan_filename), "task_details.txt"))
 
     # Obtaining folder names
     parser = PDDL_Parser()
@@ -58,7 +67,7 @@ if __name__ == "__main__":
     _unfiltered_plans_folder = _final_plans_folder + '/unfiltered_plans'
 
     # Result file
-    result_filename = "is_relevant.txt"
+    result_filename = os.path.join(os.path.dirname(plan_filename), "is_relevant.txt")
     f = open(result_filename, "w")
 
     # Planning timer file
@@ -77,8 +86,6 @@ if __name__ == "__main__":
     pcargs = {}
     pcargs['domain_file'] = follow_plan_domain
     pcargs['problem_file'] = follow_plan_problem
-    pcargs['k'] = number_of_plans
-    pcargs["check-relevance"] = "false"
     pcargs['num_previous_plans'] = 0
 
     """
@@ -122,7 +129,7 @@ if __name__ == "__main__":
         # obtaining cost and problem type from relevant actions plan
         ra_cost, ra_problem_type = _parse_plan(ra_plan_filename)           
 
-        # checking if the plan is valid (e.g. not incomplete)
+        # checking if the plan is valid (i.e. not irrelevant)
         if ra_cost != None:
             # Plan found
             if ra_cost < int(cost):
@@ -141,7 +148,6 @@ if __name__ == "__main__":
             else:
                 # inform that the found plan is relevant
                 f.write("true")
-
                 # no irrelevant actions detected in plan
                 # directory, filename = os.path.split(plan_filename + ".map_back")
                 # filename = filename.split(".")

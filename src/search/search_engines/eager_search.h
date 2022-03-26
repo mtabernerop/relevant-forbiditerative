@@ -49,7 +49,7 @@ class EagerSearch : public SearchEngine {
 
 protected:
     virtual void initialize() override;
-    virtual SearchStatus step(int argc, const char **argv) override;
+    virtual SearchStatus step() override;
 
 public:
     explicit EagerSearch(const options::Options &opts);

@@ -42,7 +42,7 @@ protected:
     double max_time;
 
     virtual void initialize() {}
-    virtual SearchStatus step(int argc, const char **argv) = 0;
+    virtual SearchStatus step() = 0;
 
     void set_plan(const Plan &plan);
     bool check_goal_and_set_plan(const GlobalState &state,
@@ -56,7 +56,7 @@ public:
     bool found_solution() const;
     SearchStatus get_status() const;
     const Plan &get_plan() const;
-    void search(int argc, const char **argv);
+    void search();
     const SearchStatistics &get_statistics() const {return statistics; }
     void set_bound(int b) {bound = b; }
     int get_bound() {return bound; }
