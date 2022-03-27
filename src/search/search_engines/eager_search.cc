@@ -191,6 +191,8 @@ SearchStatus EagerSearch::step() {
                                                         " " + to_string(cost) +
                                                         " " + string(task_details[3]);
 
+            cout << "System call: " + syscall << endl;
+
             // System call
             system(syscall.c_str());           
 
