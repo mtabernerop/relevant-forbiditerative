@@ -2,7 +2,6 @@
 from __future__ import print_function
 from unittest import result
 
-import timers
 import shutil
 import os, sys
 import subprocess
