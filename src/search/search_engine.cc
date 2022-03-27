@@ -72,6 +72,11 @@ void SearchEngine::search() {
             break;
         }
     }
+
+    //TODO: IMPORTANT -> CHECK IF SOLUTION FOUND IS CORRECTLY SET TO FALSE HERE
+    if (status == FAILED)
+        solution_found = false;
+
     // TODO: Revise when and which search times are logged.
     cout << "Actual search time: " << timer
          << " [t=" << utils::g_timer << "]" << endl;

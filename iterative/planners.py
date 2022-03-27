@@ -276,7 +276,8 @@ class TopKPlanner(Planner):
         # removing planning timer file
         os.remove(PLANNING_TIMER_FILE)
         # removing task details file
-        os.remove(plan_manager.get_task_details_filename())
+        if os.path.exists(plan_manager.get_task_details_filename()):
+            os.remove(plan_manager.get_task_details_filename())
 
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)

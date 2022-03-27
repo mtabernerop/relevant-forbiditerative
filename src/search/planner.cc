@@ -51,7 +51,6 @@ int main(int argc, const char **argv) {
     }
     
     utils::Timer search_timer;
-    cout << "########################################################################## paso" << endl;
     engine->search();
     search_timer.stop();
     utils::g_timer.stop();

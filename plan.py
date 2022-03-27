@@ -111,9 +111,9 @@ def find_plans(args):
     if num_plans_processed == 0:
         logging.info("No plans were found")
         # planner.finalize(plan_manager)
-        planner.cleanup(plan_manager)
-        planner.report_done()
         planner.finalize(args, plan_manager, _timers)
+        planner.cleanup(plan_manager)
+        # planner.report_done()
         return
 
     # At this point, we have exactly one plan 
@@ -121,9 +121,9 @@ def find_plans(args):
     if args.number_of_plans == 1:
         planner.report_iteration_step(plan_manager, success=True)
         # planner.finalize(plan_manager)
-        planner.cleanup(plan_manager)
-        planner.report_done()
         planner.finalize(args, plan_manager, _timers)
+        planner.cleanup(plan_manager)
+        # planner.report_done()
         return
 
     ## Keeping the original sas
@@ -162,9 +162,9 @@ def find_plans(args):
         if planner.enough_plans_found(plan_manager):
             planner.report_iteration_step(plan_manager, success=True)
             # planner.finalize(plan_manager)
-            planner.cleanup(plan_manager)
-            planner.report_done()
             planner.finalize(args, plan_manager, _timers)
+            planner.cleanup(plan_manager)
+            # planner.report_done()
             return
     logging.info("End of plan extension with structural symmetries\n")
 
@@ -204,10 +204,10 @@ def find_plans(args):
         done = planner.enough_plans_found(plan_manager)
         planner.report_iteration_step(plan_manager, success=done)
         # planner.finalize(plan_manager)
-        planner.cleanup(plan_manager)
         if done:
-            planner.report_done()
+            # planner.report_done()
             planner.finalize(args, plan_manager, _timers)
+        planner.cleanup(plan_manager)
         return
     
     # First iteration is done
@@ -288,9 +288,9 @@ def find_plans(args):
             if planner.enough_plans_found(plan_manager):
                 planner.report_iteration_step(plan_manager, success=True)
                 # planner.finalize(plan_manager)
-                planner.cleanup(plan_manager)
-                planner.report_done()
                 planner.finalize(args, plan_manager, _timers)
+                planner.cleanup(plan_manager)
+                # planner.report_done()
                 return
         logging.info("End of plan extension with structural symmetries\n")
 

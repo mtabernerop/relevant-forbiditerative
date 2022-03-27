@@ -131,6 +131,8 @@ if __name__ == "__main__":
 
         # checking if the plan is valid (i.e. not irrelevant)
         if ra_cost != None:
+            print(f"Plan cost: " + str(cost))
+            print(f"Relevant plan cost: " + str(ra_cost))
             # Plan found
             if ra_cost < int(cost):
                 # irrelevant actions detected in plan
