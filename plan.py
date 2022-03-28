@@ -114,7 +114,7 @@ def find_plans(args):
         planner.finalize(args, plan_manager, _timers)
         planner.cleanup(plan_manager)
         # planner.report_done()
-        return
+        exit(0)
 
     # At this point, we have exactly one plan 
     assert(num_plans_processed == 1)
@@ -124,7 +124,7 @@ def find_plans(args):
         planner.finalize(args, plan_manager, _timers)
         planner.cleanup(plan_manager)
         # planner.report_done()
-        return
+        exit(0)
 
     ## Keeping the original sas
     task_manager.add_task("output.sas")
@@ -165,7 +165,7 @@ def find_plans(args):
             planner.finalize(args, plan_manager, _timers)
             planner.cleanup(plan_manager)
             # planner.report_done()
-            return
+            exit(0)
     logging.info("End of plan extension with structural symmetries\n")
 
     # calling the reformulation
@@ -208,7 +208,7 @@ def find_plans(args):
             # planner.report_done()
             planner.finalize(args, plan_manager, _timers)
         planner.cleanup(plan_manager)
-        return
+        exit(0)
     
     # First iteration is done
     planner.report_iteration_step(plan_manager, success=True)
@@ -291,7 +291,7 @@ def find_plans(args):
                 planner.finalize(args, plan_manager, _timers)
                 planner.cleanup(plan_manager)
                 # planner.report_done()
-                return
+                exit(0)
         logging.info("End of plan extension with structural symmetries\n")
 
         # calling the reformulation

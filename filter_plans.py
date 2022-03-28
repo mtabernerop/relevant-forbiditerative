@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     # Result file
     result_filename = os.path.join(os.path.dirname(plan_filename), "is_relevant.txt")
-    f = open(result_filename, "w")
+    f = open(result_filename, "w+")
 
     # Planning timer file
     t = open(PLANNING_TIMER_FILE, "r+")
