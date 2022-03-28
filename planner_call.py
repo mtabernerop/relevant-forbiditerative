@@ -113,7 +113,7 @@ class BasePlannerCall(PlannerCall):
 
 class BaseCostOptimalPlannerCall(BasePlannerCall):
     def planner_args(self, **kwargs):
-        search_heur = "blind()" if "consistent" in kwargs and kwargs["consistent"] else "hmax()"
+        search_heur = "blind()" if "consistent" in kwargs and kwargs["consistent"] else "celmcut()" # hmax()
         shortest_opt = "shortest=true" if "shortest" in kwargs and kwargs["shortest"] else "shortest=false"
         return ["--symmetries",
                 "sym=structural_symmetries(time_bound=0,search_symmetries=oss, \

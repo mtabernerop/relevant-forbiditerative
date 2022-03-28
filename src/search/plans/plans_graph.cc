@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+#include <filesystem>
 
 #include <deque>
 #include <vector>
@@ -823,6 +825,26 @@ vector<string> read_task_details(string file_path){
     return content;
 }
 
+size_t count_valid_plans(){
+	char cwdir[256]; 
+    getcwd(cwdir, 256); // current working directory
+	string cwdir_str(cwdir);
+	
+	DIR *dir;
+	struct dirent *diread;
+	vector<char *> files;
+	if ((dir = opendir((const char *) cwdir)) != nullptr) {
+		while ((diread = readdir(dir)) != nullptr) {
+			string prefix = "sas_plan.";
+			string file_name = diread->d_name;
+			if(file_name.find(prefix) != string::npos)
+				files.push_back(diread->d_name);
+		}
+		closedir(dir);
+	}
+	return files.size();
+}
+
 void PlansGraph::find_plans_dfs(size_t number_of_plans) {
 	//cout << "Start dumping plans, optimal cost is " << best_plan_cost << endl;
 
@@ -833,7 +855,10 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
 	shared_ptr<DFSNode> init_node = make_shared<DFSNode>(init.get_id(), nullptr, -1, 0);
 	dfs_queue.push_back(init_node);
 
-	while (!dfs_queue.empty()) {
+	// number of valid plans previously found
+	size_t valid_plans = count_valid_plans();
+
+	while (!dfs_queue.empty() && (valid_plans < number_of_plans)) {
 		if (number_of_plans <= optimal_plans.size())
 			return;
 		shared_ptr<DFSNode> node = dfs_queue.back();
@@ -881,7 +906,7 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
             }
 
             // Filtering the current plan
-            string syscall = "python " + task_details[0] + "/forbiditerative/filter_plans.py"
+            string syscall = "python " + task_details[0] + "/filter_plans.py" //TODO: añadir /forbiditerative
                                                         " " + string(task_details[1]) +
                                                         " " + string(task_details[2]) +
                                                         " " + string(plan_dir) +
@@ -907,6 +932,7 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
 					std::pair<PlansSet::iterator, bool > result = optimal_plans.insert(current_plan);
 					if (result.second) {
 						save_plan(current_plan, true);
+						valid_plans++;
 						cout << "Plan cost: " << best_plan_cost << endl;
 					}
 				} else {
