@@ -906,7 +906,7 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
             }
 
             // Filtering the current plan
-            string syscall = "python " + task_details[0] + "/filter_plans.py" //TODO: añadir /forbiditerative
+            string syscall = "python " + task_details[0] + "/forbiditerative/filter_plans.py"
                                                         " " + string(task_details[1]) +
                                                         " " + string(task_details[2]) +
                                                         " " + string(plan_dir) +
