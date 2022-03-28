@@ -7,6 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <deque>
 #include <vector>
@@ -807,6 +810,19 @@ void PlansGraph::dump_plans(size_t number_of_plans) {
 	}
 }
 
+vector<string> read_task_details(string file_path){
+    vector<string> content;
+    fstream file;
+    file.open(file_path);
+    if (file.is_open()) {
+        string line;
+        while(getline(file, line))
+            content.push_back(line);
+        file.close();
+    }
+    return content;
+}
+
 void PlansGraph::find_plans_dfs(size_t number_of_plans) {
 	//cout << "Start dumping plans, optimal cost is " << best_plan_cost << endl;
 
@@ -841,16 +857,62 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
 			}
 			// Revert plan
 			std::reverse(current_plan.begin(),current_plan.end());
-			cout << "Reconstruction done, saving plan" << endl;
-			if (!optimal || node->plan_cost == best_plan_cost) {
-				std::pair<PlansSet::iterator, bool > result = optimal_plans.insert(current_plan);
-				if (result.second) {
-					save_plan(current_plan, true);
-					cout << "Plan cost: " << best_plan_cost << endl;
+			
+			int cost = 0;
+			for (int i = 0; i < current_plan.size(); i++){
+				cost += current_plan[i]->get_cost();
+			}
+
+			// Reading task details
+			char cwdir[256]; 
+			getcwd(cwdir, 256); // current working directory
+			string cwdir_str(cwdir);
+			vector<string> task_details = read_task_details(cwdir_str + "/task_details.txt");
+
+			// Current plan directory
+            char plan_dir[256];
+            strcpy(plan_dir, cwdir);
+
+			// Storing the plan actions into "current_plan.pddl"
+            ofstream outfile(strcat(plan_dir, "/current_plan.pddl"));
+            for (size_t i = 0; i < current_plan.size(); ++i) {
+                // Escribir a fichero abierto - outfile
+                outfile << "(" << current_plan[i]->get_name() << ")" << endl;
+            }
+
+            // Filtering the current plan
+            string syscall = "python " + task_details[0] + "/forbiditerative/filter_plans.py"
+                                                        " " + string(task_details[1]) +
+                                                        " " + string(task_details[2]) +
+                                                        " " + string(plan_dir) +
+                                                        " " + to_string(cost) +
+                                                        " " + string(task_details[3]);
+
+            cout << "System call: " + syscall << endl;
+
+            // System call
+            system(syscall.c_str());           
+
+            // Reading the obtained result
+            ifstream file;
+            file.open(cwdir_str + "/is_relevant.txt");
+            string result;
+            
+            getline(file, result);
+            file.close();
+
+			if(result.compare("true") == 0) {
+				cout << "Reconstruction done, saving plan" << endl;
+				if (!optimal || node->plan_cost == best_plan_cost) {
+					std::pair<PlansSet::iterator, bool > result = optimal_plans.insert(current_plan);
+					if (result.second) {
+						save_plan(current_plan, true);
+						cout << "Plan cost: " << best_plan_cost << endl;
+					}
+				} else {
+					non_optimal_plans.insert(current_plan);
+					cout << "Found non optimal plan" << endl;
 				}
-			} else {
-				non_optimal_plans.insert(current_plan);
-				cout << "Found non optimal plan" << endl;
 			}
 		//continue;
 		}
