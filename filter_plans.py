@@ -10,7 +10,7 @@ from driver import limits
 from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, make_call, get_base_dir
 from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
-from iterative.planners import _remove_relevance
+from iterative.planners import _include_relevance, _remove_relevance
 import logging
 
 PLANNING_TIMER_FILE = os.path.join(get_base_dir(), "planning_timer.txt")
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     number_of_plans = sys.argv[5]
 
     # removing filtering parameter
-    # _remove_relevance(os.path.join(os.path.dirname(plan_filename), "task_details.txt"))
+    _remove_relevance(os.path.join(os.path.dirname(plan_filename), "task_details.txt"))
 
     # Obtaining folder names
     parser = PDDL_Parser()
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         t.truncate()
     except:
         raise
-    
+
     # checking if a plan has been found by the independent planner
     if os.path.exists(f"{_rplans_folder}/sas_plan.1"):
         # sas_plan.1 > ra_plan.X
@@ -184,3 +184,4 @@ if __name__ == "__main__":
     os.remove(plan_filename + ".map_back")
     f.close()
     t.close()
+    _include_relevance(os.path.join(os.path.dirname(plan_filename), "task_details.txt"))
