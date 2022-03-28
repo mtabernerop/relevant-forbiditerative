@@ -69,7 +69,7 @@ def is_relevant(domain, problem, plan_filename, number_of_plans):
         # obtaining cost and problem type from relevant actions plan
         ra_cost, ra_problem_type = _parse_plan("/home/miguel/Escritorio/University/TFG/planners/downward/sas_plan.1")           
 
-        # checking if the plan is valid (e.g. not incomplete)
+        # checking if the plan is valid (e.g. not irrelevant)
         if ra_cost != None:
             # Plan found
             if ra_cost < int(cost):                
@@ -140,4 +140,4 @@ if __name__ == "__main__":
 
     print("Relevant plans: " + str(relevant_plans))
     print("Irrelevant plans: " + str(irrelevant_plans))
-    print("Unparsed plans: " + str(unparsed_plans))
+    print("Unparsed plans: " + str(unparsed_plans))                    
