@@ -184,7 +184,7 @@ SearchStatus EagerSearch::step() {
             }
 
             // Filtering the current plan
-            string syscall = "python " + task_details[0] + "/forbiditerative/filter_plans.py"
+            string syscall = "python " + task_details[0] + "/filter_plans.py" // change in clusters for /forbiditerative/filter_plans.py
                                                         " " + string(task_details[1]) +
                                                         " " + string(task_details[2]) +
                                                         " " + string(plan_dir) +
