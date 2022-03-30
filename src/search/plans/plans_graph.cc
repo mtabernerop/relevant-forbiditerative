@@ -908,7 +908,11 @@ void PlansGraph::find_plans_dfs(size_t number_of_plans) {
             }
 
             // Filtering the current plan
+<<<<<<< HEAD
             string syscall = "python " + task_details[0] + "/filter_plans.py"
+=======
+            string syscall = "python " + task_details[0] + "/filter_plans.py" // change in clusters for /forbiditerative/filter_plans.py
+>>>>>>> 28772bef4fbdcd3e241b6556f59c542732ddaa87
                                                         " " + string(task_details[1]) +
                                                         " " + string(task_details[2]) +
                                                         " " + string(plan_dir) +
