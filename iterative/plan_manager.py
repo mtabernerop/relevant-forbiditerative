@@ -53,7 +53,7 @@ class PlanManager(object):
         parser = PDDL_Parser()
         prob_dir, prob_filename = os.path.split(args.problem)
         prob_filename, prob_ext = os.path.splitext(prob_filename)
-        self._final_plans_folder = get_base_dir() + '/results/' + parser.get_domain_name(args.domain) + "-" + prob_filename + "-" + str(args.number_of_plans)
+        self._final_plans_folder = get_base_dir() + '/results/' + args.domain.split("/")[-2] + "-" + prob_filename + "-" + str(args.number_of_plans)
         self._rplans_folder = self._final_plans_folder + '/forced_relevant_plans'
         self._iplans_folder = self._final_plans_folder + '/filtered_plans'
         self._unfiltered_plans_folder = self._final_plans_folder + '/unfiltered_plans'
