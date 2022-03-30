@@ -14,7 +14,7 @@ from numpy import empty
 import copy_plans
 import json
 from driver import limits
-from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, TopkReformulationPlannerCall, make_call, get_base_dir
+from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, HmaxPlannerCall, TopkReformulationPlannerCall, make_call, get_base_dir
 from pddl_parser.PDDL import PDDL_Parser, parse
 
 _PLAN_INFO_REGEX = re.compile(r"; cost = (\d+) \((unit cost|general cost)\)([\n]{0,1})")
@@ -177,7 +177,7 @@ class PlanManager(object):
                 -------------
                 BaseCostOptimalPlanner / BaseSatisficingPlanner call
                 """
-                pc = BaseCostOptimalPlannerCall()
+                pc = HmaxPlannerCall()
                 command = pc.get_callstring(**pcargs)
                 
                 logging.info(f"Using {type(pc).__name__} to check if found plan is relevant")
