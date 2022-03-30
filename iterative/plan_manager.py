@@ -173,16 +173,6 @@ class PlanManager(object):
 
                 """
                 -------------
-                ALTERNATIVE 1
-                -------------
-                Manual fast-downward call
-                """
-                # enable the following options in order to use fast-downward with alias
-                # pcargs['plan_file'] = 'sas_plan.1'
-                # pcargs['alias'] = 'seq-sat-lama-2011'
-                # os.system("./fast-downward.py --plan-file {plan_file} --alias {alias} {domain_file} {problem_file}".format(**pcargs))
-                """
-                -------------
                 ALTERNATIVE 2
                 -------------
                 BaseCostOptimalPlanner / BaseSatisficingPlanner call
@@ -203,9 +193,8 @@ class PlanManager(object):
                     logging.warning("Timeout expired. End of execution.")
                     planner.report_iteration_step(self, success=False)
                     # planner.finalize(plan_manager)
-                    planner.cleanup(self)
-                    planner.report_done()
                     planner.finalize(args, self, _timers)
+                    planner.cleanup(self)
                     exit(0)
                 except:
                     raise
@@ -246,22 +235,23 @@ class PlanManager(object):
                             dest_filename = f"{self._final_plans_folder}/{filename}"
                             # sas_plan.X.map_back > ./topk_plans/sas_plan.X
                             shutil.copy2(plan_filename + ".map_back", dest_filename)
-                            logging.info("Found plan does not contain irrelevant actions")
+                            logging.info("Found plan is relevant")
                             logging.info(f"Copying plan to {dest_filename}")
 
                         # uncomment the following line to remove comparison (forced) relevant plans
                         # os.remove(ra_plan_filename)
 
                 else:
-                    print(f"cat {follow_plan_domain}")
-                    exit(0)
                     logging.warning(f"No plan was found with {type(pc).__name__}")
                     # plan_filename > irrelevant plans folder
-                    unfiltered_plan_filename = f"{self._unfiltered_plans_folder}/unfiltered_plan.{self.get_plan_counter()+1}"
+                    unfiltered_plan_filename = f"{self._unfiltered_plans_folder}/unfiltered_plan." + str(self.get_plan_counter()+1)
                     shutil.copy(plan_filename + ".map_back", unfiltered_plan_filename)
                     #TODO: decide whether this plan should be considered or not among top-k solutions
+                    exit(-1)
 
                 os.remove(plan_filename + ".map_back")
+                os.remove(follow_plan_domain)
+                os.remove(follow_plan_problem)
 
                 if self._problem_type is None:
                     # This is the first plan we found.

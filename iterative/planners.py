@@ -219,15 +219,12 @@ class TopKPlanner(Planner):
         irrelevant_plans_pctg = irrelevant_plans/processed_plans if processed_plans > 0 else 0
         unfiltered_plans_pctg = unfiltered_plans/processed_plans if processed_plans > 0 else 0
 
-        global_time = time.time() - self._timer.start_time
-        parser = PDDL_Parser()
-        domain = parser.get_domain_name(args.domain)
-        # problem = parser.get_problem_name(args.problem)
+        global_time = _timers["planning"]._elapsed_clock + _timers["extending_plans"]._elapsed_clock + _timers["task_reformulation"]._elapsed_clock + _timers["external_planning"]._elapsed_clock
 
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)
         row = [
-            os.path.basename(args.domain),
+            args.domain.split("/")[-2],
             # problem,
             os.path.basename(args.problem),
             args.number_of_plans,
