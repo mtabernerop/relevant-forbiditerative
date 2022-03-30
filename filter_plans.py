@@ -143,8 +143,9 @@ if __name__ == "__main__":
                 # mapping back order parameters in actions
                 copy_plans.map_back_plan_order_parameters(ra_plan_filename)
 
+                absolute_plan_number = plan_filename.split(".")[-1]
                 # plan_filename > irrelevant plans folder
-                ia_plan_filename = f"{_iplans_folder}/ia_plan." + str(get_plan_counter(_iplans_folder, "ia_plan")+1)
+                ia_plan_filename = f"{_iplans_folder}/ia_plan.{absolute_plan_number}." + str(get_plan_counter(_iplans_folder, "ia_plan")+1)
                 shutil.copy(plan_filename + ".map_back", ia_plan_filename)
             else:
                 # inform that the found plan is relevant

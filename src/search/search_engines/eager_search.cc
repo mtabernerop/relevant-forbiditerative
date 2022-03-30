@@ -177,14 +177,16 @@ SearchStatus EagerSearch::step() {
             strcpy(plan_dir, cwdir);
 
             // Storing the plan actions into "current_plan.pddl"
-            ofstream outfile(strcat(plan_dir, "/current_plan.pddl"));
+            int plan_number = g_num_previously_generated_plans + 1;
+            string plan_name = "/current_plan." + to_string(plan_number);
+            ofstream outfile(strcat(plan_dir, plan_name.c_str()));
             for (size_t i = 0; i < current_plan.size(); ++i) {
                 // Escribir a fichero abierto - outfile
                 outfile << "(" << current_plan[i]->get_name() << ")" << endl;
             }
-
+            
             // Filtering the current plan
-            string syscall = "python " + task_details[0] + "/forbiditerative/filter_plans.py"
+            string syscall = "python " + task_details[0] + "/filter_plans.py"
                                                         " " + string(task_details[1]) +
                                                         " " + string(task_details[2]) +
                                                         " " + string(plan_dir) +
