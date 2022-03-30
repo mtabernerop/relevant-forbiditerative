@@ -143,6 +143,9 @@ class PlanManager(object):
         new_plans_min_cost = None 
         
         for counter in itertools.count(num_plans_so_far + 1):
+            if self.get_number_valid_plans(True) >= args.number_of_plans:
+                logging.debug(f"Enough plans found ({self.get_number_valid_plans(True)})")
+                break
             plan_filename = self._get_local_plan_file(counter)
             if not os.path.exists(plan_filename):
                 break
