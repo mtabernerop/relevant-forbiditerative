@@ -1,17 +1,21 @@
 #!/usr/bin/env python
-# Four spaces as indentation [no tabs]
 
 import re
 from pddl_parser.action import Action
 from pddl_parser.action import PlanAction
+from pddl_parser.action import ground_array
+# from action import Action
+# from action import PlanAction
+# from action import ground_array
 from textwrap import indent
 from pddl_parser.n2w import N2W
+# from n2w import N2W
 import logging
 import os, sys
 
 class PDDL_Parser:
 
-    SUPPORTED_REQUIREMENTS = [':strips', ':negative-preconditions', ':typing', ':equality', ':adl', ':action-costs']
+    SUPPORTED_REQUIREMENTS = [':strips', ':negative-preconditions', ':typing', ':equality', ':adl', ':action-costs', ':conditional-effects']
 
     #-----------------------------------------------
     # Tokens
@@ -421,6 +425,8 @@ def parse_functions(functions):
 def create_predicates(predicates, negative=False):
     preds = ''
     for predicate in predicates:
+        if not predicate:
+            break
         preds += '\n'
         if negative:
             preds += ' (not'
@@ -562,10 +568,11 @@ def parse_goal(positive_goals, negative_goals):
 #-----------------------------------------------
 # Metric
 #-----------------------------------------------
+
 def parse_metric(metric):
     if not metric:
         return ''
-    return f"(:metric {metric[0]} {array_to_predicate(metric[1])})"
+    return f"(:metric {' '.join(ground_array(list(), metric))})"
 
 def array_to_predicate(arr):
     predicate = '('
