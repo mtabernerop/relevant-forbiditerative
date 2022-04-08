@@ -1,5 +1,5 @@
 import pandas as pd
-import os
+import os, sys
 
 def complete_missing_exps(results):
     domains = ["blocks", "campus", "depots", "driverlog", "dwr", "ferry", "grid", "intrusiondetection", "kitchen", "logistics", "miconic", "rover", "satellite", "sokoban", "zenotravel"]
@@ -22,6 +22,7 @@ def complete_missing_exps(results):
 
 if __name__ == "__main__":
     # Reading results
-    results = pd.read_csv("/home/miguel/Escritorio/test_condor/action-filtering-iterative.csv")
+    results = pd.read_csv(sys.argv[1])
     results = complete_missing_exps(results)
-    results.to_csv(os.path.join(os.getcwd(), "action-filtering-iterative.csv"), index=False, header=True)
+    print(results.groupby("domain").count())
+    results.to_csv(sys.argv[2], index=False, header=True)
