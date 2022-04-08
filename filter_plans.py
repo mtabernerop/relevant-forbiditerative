@@ -7,7 +7,7 @@ import os, sys
 import subprocess
 import copy_plans
 from driver import limits
-from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, make_call, get_base_dir
+from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, HmaxPlannerCall, make_call, get_base_dir
 from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
 from iterative.planners import _include_relevance, _remove_relevance
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     -------------
     BaseCostOptimalPlanner / BaseSatisficingPlanner call
     """
-    pc = BaseCostOptimalPlannerCall()
+    pc = HmaxPlannerCall()
     command = pc.get_callstring(**pcargs)
 
     local_folder = _rplans_folder
