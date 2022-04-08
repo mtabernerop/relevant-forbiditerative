@@ -265,6 +265,7 @@ class TopKPlanner(Planner):
         irrelevant_plans_pctg = irrelevant_plans/processed_plans if processed_plans > 0 else 0
         unfiltered_plans_pctg = unfiltered_plans/processed_plans if processed_plans > 0 else 0
 
+<<<<<<< HEAD
         # external planning time contained in "planning"
         global_time = _timers["planning"]._elapsed_clock + _timers["extending_plans"]._elapsed_clock + _timers["task_reformulation"]._elapsed_clock
 
@@ -278,11 +279,18 @@ class TopKPlanner(Planner):
         # removing task details file
         if os.path.exists(plan_manager.get_task_details_filename()):
             os.remove(plan_manager.get_task_details_filename())
+=======
+        global_time = _timers["planning"]._elapsed_clock + _timers["extending_plans"]._elapsed_clock + _timers["task_reformulation"]._elapsed_clock + _timers["external_planning"]._elapsed_clock
+>>>>>>> bc004329a3bdf91e087cf9d9b53cac0cd10914c0
 
         f = open(results_file, 'a+', newline='')
         writer = csv.writer(f)
         row = [
             args.domain.split("/")[-2],
+<<<<<<< HEAD
+=======
+            # problem,
+>>>>>>> bc004329a3bdf91e087cf9d9b53cac0cd10914c0
             os.path.basename(args.problem),
             args.number_of_plans,
             self._iterationStep-1,

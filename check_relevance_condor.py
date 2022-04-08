@@ -1,32 +1,22 @@
+#!/usr/bin/env python
 from __future__ import print_function
-from webbrowser import get
 
-import timers
-import shutil
 import os, sys
-import subprocess
-import copy_plans
-from driver import limits
-from planner_call import BaseCostOptimalPlannerCall, BaseSatisficingPlannerCall, make_call, get_base_dir
 from pddl_parser.PDDL import parse, PDDL_Parser
 from iterative.plan_manager import _parse_plan
-import logging
+import copy_plans
+import pandas as pd
 
 """
 ---------------
 CHECK RELEVANCE
 ---------------
 Script that detects if a plan is relevant.
-
 > Syscall: python check_relevance.py <domain> <problem> <plan> <cost> <number_of_plans>
-
 > Output: <true/false>
           
           * True/False: returns whether <plan> is irrelevant (True) or relevant (False)
 """
-
-def get_plan_counter(folder):
-    return len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name)) and "ra_plan" in name])
 
 def parse_follow_plan_filename(name):
     directory, filename = os.path.split(name)
@@ -60,14 +50,14 @@ def is_relevant(domain, problem, plan_filename, number_of_plans):
     Manual fast-downward call
     """
     # enable the following options in order to use fast-downward with alias
-    pcargs['plan_file'] = '/home/miguel/Escritorio/University/TFG/planners/downward/sas_plan'
-    pcargs['alias'] = 'seq-sat-lama-2011'
-    os.system("/home/miguel/Escritorio/University/TFG/planners/downward/./fast-downward.py --plan-file {plan_file} --alias {alias} {domain_file} {problem_file}".format(**pcargs))
+    pcargs['plan_file'] = 'downward/sas_plan.1'
+    pcargs['alias'] = 'seq-opt-lmcut'
+    os.system("downward/./fast-downward.py --plan-file {plan_file} --alias {alias} {domain_file} {problem_file} >/dev/null 2>&1".format(**pcargs))
 
     # checking if a plan has been found by the independent planner
-    if os.path.exists(f"/home/miguel/Escritorio/University/TFG/planners/downward/sas_plan.1"):
+    if os.path.exists(f"downward/sas_plan.1"):
         # obtaining cost and problem type from relevant actions plan
-        ra_cost, ra_problem_type = _parse_plan("/home/miguel/Escritorio/University/TFG/planners/downward/sas_plan.1")           
+        ra_cost, ra_problem_type = _parse_plan("downward/sas_plan.1")           
 
         # checking if the plan is valid (e.g. not irrelevant)
         if ra_cost != None:
@@ -86,58 +76,72 @@ def is_relevant(domain, problem, plan_filename, number_of_plans):
                 return "True"
     else:
         # inform that the plan could not be parsed
-        logging.error("Unsuccessful planning")
+        print("Unsuccessful planning")
         os.remove(plan_filename + ".map_back")
         os.remove(follow_plan_domain)
         os.remove(follow_plan_problem)
         return "Not filtered"
 
 
-if __name__ == "__main__":
-    import os
+def filter_plans(TASK_PATH):
 
     relevant_plans = 0
     irrelevant_plans = 0
     unparsed_plans = 0
 
-    if sys.argv[1].startswith("/"):
-        TASKS_PATH = sys.argv[1]
-    else:
-        TASKS_PATH = os.path.join(os.getcwd(), sys.argv[1])
+    for plan in os.listdir(TASK_PATH):
+        print("---" + plan)
+        task = TASK_PATH.split("/")[-1]
+        task = task.split("-")
 
-    print(TASKS_PATH)
+        domain_name = task[0]
+        problem_name = task[1]
+        number_of_plans = task[2]
 
-    for plan in os.listdir(TASKS_PATH):
-        if not os.path.isdir(os.path.join(TASKS_PATH, plan)):
-            task = TASKS_PATH.split("/")[-1]
-            task = task.split("-")
+        domain_filename = "forbiditerative/domexps/" + domain_name + "/domain.pddl"
+        problem_filename = "forbiditerative/domexps/" + domain_name + "/instances/" + problem_name + ".pddl"
+        plan = os.path.join(TASK_PATH, plan)
 
-            domain_name = task[0]
-            problem_name = task[1]
-            number_of_plans = task[2]
+        res = is_relevant(domain_filename, problem_filename, plan, number_of_plans)
 
-            domain_filename = "/home/miguel/Escritorio/University/TFG/domains-raquel/" + domain_name + "/domain.pddl"
-            problem_filename = "/home/miguel/Escritorio/University/TFG/domains-raquel/" + domain_name + "/instances/" + problem_name + ".pddl"
-            plan = os.path.join(TASKS_PATH, plan)
+        if res == "True":
+            relevant_plans += 1
+        elif res == "False":
+            irrelevant_plans += 1
+        elif res == "Not filtered":
+            unparsed_plans += 1
+            
+    print(relevant_plans, irrelevant_plans, unparsed_plans)
 
-            print("###################################################################")
-            print("DOMAIN: " + domain_filename)
-            print("PROBLEM: " + problem_filename)
-            print("PLAN: " + plan)
-            print("###################################################################")
+    return irrelevant_plans
 
-            res = is_relevant(domain_filename, problem_filename, plan, number_of_plans)
+if __name__ == "__main__":
+    
+    irrelevant_plans_dict = dict()
 
-            print("RESULT: " + res)
-            print("###################################################################")
+    PLANS_PATH = "experiments/WS-ICAPS22-FinPlan/results/"
+    domains = ["blocks", "campus", "depots", "driverlog", "dwr", "ferry", "grid", "intrusiondetection", "kitchen", "logistics", "miconic", "rover", "satellite", "sokoban", "zenotravel"]
+    problems = list(range(0,20))
+    ks = [1,5,10,50,100,500,1000]
 
-            if res == "True":
-                relevant_plans += 1
-            elif res == "False":
-                irrelevant_plans += 1
-            elif res == "Not filtered":
-                unparsed_plans += 1
+    # current process
+    process_number = int(sys.argv[1])
 
-    print("Relevant plans: " + str(relevant_plans))
-    print("Irrelevant plans: " + str(irrelevant_plans))
-    print("Unparsed plans: " + str(unparsed_plans))                    
+    irrelevant_plans_dict = dict()
+
+    domain = domains[int(sys.argv[1])]
+    for problem in problems:
+        for k in ks:
+            task = f"{domain}-p{problem}-{k}"
+            print(task)
+            if os.path.exists(os.path.join(PLANS_PATH, domain, task)):
+                result = filter_plans(os.path.join(PLANS_PATH, domain, task))
+                irrelevant_plans_dict[task] = result
+
+    print(irrelevant_plans_dict)
+
+    df = pd.DataFrame.from_dict(irrelevant_plans_dict, orient='index')
+
+    out_folder = "results-fi-ia/results%s/" % process_number
+    os.makedirs(out_folder)
+    df.to_csv(os.path.join(out_folder, f"{domain}.csv"), index=True, header=False)
