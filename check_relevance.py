@@ -58,8 +58,8 @@ def is_relevant(domain, problem, plan_filename, number_of_plans):
     Manual fast-downward call
     """
     # enable the following options in order to use fast-downward with alias
-    pcargs['plan_file'] = '/home/miguel/Escritorio/University/TFG/planners/downward/sas_plan'
-    pcargs['alias'] = 'seq-sat-lama-2011'
+    pcargs['plan_file'] = '/home/miguel/Escritorio/University/TFG/planners/downward/sas_plan.1'
+    pcargs['alias'] = 'seq-opt-lmcut'
     os.system("/home/miguel/Escritorio/University/TFG/planners/downward/./fast-downward.py --plan-file {plan_file} --alias {alias} {domain_file} {problem_file}".format(**pcargs))
 
     # checking if a plan has been found by the independent planner
