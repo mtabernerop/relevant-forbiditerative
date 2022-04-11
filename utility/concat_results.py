@@ -1,8 +1,8 @@
 import pandas as pd
 import csv
-import os
+import os, sys
 
-GENERAL_RESULTS = "/home/miguel/Escritorio/test_condor/basic-forbiditerative.csv"
+GENERAL_RESULTS = sys.argv[1]
 df = pd.read_csv(GENERAL_RESULTS)
 
 domains = ["blocks", "campus", "depots", "driverlog", "dwr", "ferry", "grid", "intrusiondetection", "kitchen", "logistics", "miconic", "rover", "satellite", "sokoban", "zenotravel"]
@@ -49,4 +49,4 @@ for domain in domains:
         print("ERROR")
 
 
-df.to_csv(os.path.join(os.getcwd(), "basic-forbiditerative-irrelevant-plans.csv"), index=False, header=True)
+df.to_csv(sys.argv[2], index=False, header=True)
