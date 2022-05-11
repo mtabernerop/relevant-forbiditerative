@@ -95,13 +95,19 @@ class TopkReformulationPlannerCall(PlannerCall):
             self.planner_args(**kwargs)
 
     def planner_args(self, **kwargs):
-        return ["--symmetries",
-              "sym=structural_symmetries(time_bound=0,search_symmetries=dks, \
-               stabilize_initial_state=true, keep_operator_symmetries=true)",
-               "--search", "forbid_iterative(reformulate = FORBID_MULTIPLE_PLANS, \
-               extend_plans_with_symmetry=sym,  reduce_plan_orders={reordering}, dump=false, \
-               number_of_plans={num_remaining_plans},  change_operator_names=true,\
-               external_plan_file={external_plan_file})".format(**kwargs)]
+        if kwargs["symmetries"] is True: 
+            return ["--symmetries",
+                    "sym=structural_symmetries(time_bound=0,search_symmetries=dks, \
+                    stabilize_initial_state=true, keep_operator_symmetries=true)",
+                    "--search", "forbid_iterative(reformulate = FORBID_MULTIPLE_PLANS, \
+                    extend_plans_with_symmetry=sym,  reduce_plan_orders={reordering}, dump=false, \
+                    number_of_plans={num_remaining_plans},  change_operator_names=true,\
+                    external_plan_file={external_plan_file})".format(**kwargs)]
+        else:
+            return ["--search", "forbid_iterative(reformulate = FORBID_MULTIPLE_PLANS, \
+                    reduce_plan_orders={reordering}, dump=false, \
+                    number_of_plans={num_remaining_plans},  change_operator_names=true,\
+                    external_plan_file={external_plan_file})".format(**kwargs)]
 
 
 
@@ -123,11 +129,13 @@ class BaseCostOptimalPlannerCall(BasePlannerCall):
     def planner_args(self, **kwargs):
         search_heur = "blind()" if "consistent" in kwargs and kwargs["consistent"] else "celmcut()"
         shortest_opt = "shortest=true" if "shortest" in kwargs and kwargs["shortest"] else "shortest=false"
-        return ["--symmetries",
+        if kwargs["symmetries"] is True: 
+            return ["--symmetries",
                 "sym=structural_symmetries(time_bound=0,search_symmetries=oss, \
                 stabilize_initial_state=false, keep_operator_symmetries=false)",
-                "--search",
-                "astar(%s, %s, symmetries=sym)" % (search_heur, shortest_opt) ]
+                "--search", "astar(%s, %s, symmetries=sym)" % (search_heur, shortest_opt) ]
+        else:
+            return ["--search", "astar(%s, %s)" % (search_heur, shortest_opt) ]
 
 class HmaxPlannerCall(BasePlannerCall):
     def planner_args(self, **kwargs):
