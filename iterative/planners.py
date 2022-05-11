@@ -38,6 +38,7 @@ class Planner(object):
         pcargs["domain_file"] = self._args.domain
         pcargs["problem_file"] = self._args.problem
         pcargs["k"] = self._args.number_of_plans
+        pcargs["symmetries"] = self._args.symmetries
 
         name = task_manager.get_current_task_path()
         if name is not None:
@@ -162,6 +163,7 @@ class TopKPlanner(Planner):
         pcargs["num_remaining_plans"] = num_remaining_plans
 
         pcargs["reordering"] = self._args.reordering
+        pcargs["symmetries"] = self._args.symmetries
         pc = TopkReformulationPlannerCall()
         command = pc.get_callstring(**pcargs)
 
