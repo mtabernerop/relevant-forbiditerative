@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# Four spaces as indentation [no tabs]
-
 import itertools
 
 SPECIAL_PREDICATES = ["increase" ,"decrease", "forall", "minimize", "maximize"]
@@ -116,23 +114,3 @@ def ground_array(arr, array):
         arr.append(")")
 
     return arr
-
-#-----------------------------------------------
-# Main
-#-----------------------------------------------
-if __name__ == '__main__':
-    a = Action('move', [['?ag', 'agent'], ['?from', 'pos'], ['?to', 'pos']],
-        [['at', '?ag', '?from'], ['adjacent', '?from', '?to']],
-        [['at', '?ag', '?to']],
-        [['at', '?ag', '?to']],
-        [['at', '?ag', '?from']]
-    )
-    print(a)
-
-    objects = {
-        'agent': ['ana','bob'],
-        'pos': ['p1','p2']
-    }
-    types = {'object': ['agent', 'pos']}
-    # for act in a.groundify(objects, types):
-    #     print(act)

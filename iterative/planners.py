@@ -79,10 +79,9 @@ class Planner(object):
         logging.debug("\t> \x1B[3mUnfiltered plans\x1B[0m\t\t\t%s" % (unfiltered_plans))
         logging.debug("\t> \x1B[3mProcessed plans\x1B[0m\t\t\t%s" % (processed_plans))
         logging.debug("Timers:")
-        logging.debug("\t> \x1B[3mIndividual planning\x1B[0m\t\t\t%s" % (_timers["planning"]))
-        logging.debug("\t> \x1B[3mExtending plans\x1B[0m\t\t\t%s" % (_timers["extending_plans"]))
-        logging.debug("\t> \x1B[3mTask reformulation\x1B[0m\t\t\t%s" % (_timers["task_reformulation"]))
-        logging.debug("\t> \x1B[3mExternal planning\x1B[0m\t\t\t%s" % (_timers["external_planning"]))
+        logging.debug("\t> \x1B[3mCost optimal planning\x1B[0m\t\t\t%s" % (_timers["planning"]))
+        logging.debug("\t> \x1B[3mSolution set extension\x1B[0m\t\t%s" % (_timers["task_reformulation"]))
+        logging.debug("\t> \x1B[3mNew task planning\x1B[0m\t\t\t%s" % (_timers["external_planning"]))
         logging.debug("\t> \x1B[3mGlobal time\x1B[0m\t\t\t\t%s" % (self._timer))
 
 
@@ -198,20 +197,6 @@ class TopKPlanner(Planner):
         for _name, _timer in _timers.items():
             _timer.stop()
 
-        results_file = f"{os.getcwd()}/results.csv"
-        if not os.path.exists(results_file):
-            f = open(results_file, 'w')
-            writer = csv.writer(f)
-            writer.writerow(
-                [   "domain", "problem", "k", "iterations",
-                    "relevant_plans", "irrelevant_plans", "unfiltered_plans", "processed_plans",
-                    "relevant_plans_pctg", "irrelevant_plans_pctg", "unfiltered_plans_pctg",
-                    "planning_time", "extending_plans_time", "task_reformulation_time", "independent_planning_time", "global_time",
-                    "planning_time_pctg", "extending_plans_time_pctg", "task_reformulation_time_pctg", "independent_planning_time_pctg"
-                ]
-            )
-            f.close()
-            
         relevant_plans = plan_manager.get_number_valid_plans(True)
         irrelevant_plans = plan_manager.get_number_invalid_plans()
         unfiltered_plans = plan_manager.get_number_unfiltered_plans()
@@ -223,42 +208,66 @@ class TopKPlanner(Planner):
 
         global_time = _timers["planning"]._elapsed_clock + _timers["extending_plans"]._elapsed_clock + _timers["task_reformulation"]._elapsed_clock + _timers["external_planning"]._elapsed_clock
 
-        f = open(results_file, 'a+', newline='')
-        writer = csv.writer(f)
-        row = [
-            args.domain.split("/")[-2],
-            # problem,
-            os.path.basename(args.problem),
-            args.number_of_plans,
-            self._iterationStep-1,
-            relevant_plans,
-            irrelevant_plans,
-            unfiltered_plans,
-            processed_plans,
-            relevant_plans_pctg,
-            irrelevant_plans_pctg,
-            unfiltered_plans_pctg,
-            _timers["planning"]._elapsed_clock,
-            _timers["extending_plans"]._elapsed_clock,
-            _timers["task_reformulation"]._elapsed_clock,
-            _timers["external_planning"]._elapsed_clock,
-            global_time,
-            _timers["planning"]._elapsed_clock/global_time,
-            _timers["extending_plans"]._elapsed_clock/global_time,
-            _timers["task_reformulation"]._elapsed_clock/global_time,
-            _timers["external_planning"]._elapsed_clock/global_time
-        ]
-        writer.writerow(row)
-        f.close()
+        self.report_statistics(relevant_plans, irrelevant_plans, unfiltered_plans, processed_plans, _timers)
 
-        # self.report_statistics(relevant_plans, irrelevant_plans, unfiltered_plans, processed_plans, _timers)
+        """
+        ----------------------------------------------------------
+        IMPORTANT
+        ----------------------------------------------------------
+        Uncomment the following lines to get results from console
+        ----------------------------------------------------------
+        """
+        # results_file = f"{os.getcwd()}/results.csv"
+        # if not os.path.exists(results_file):
+        #     f = open(results_file, 'w')
+        #     writer = csv.writer(f)
+        #     writer.writerow(
+        #         [   "domain", "problem", "k", "iterations",
+        #             "relevant_plans", "irrelevant_plans", "unfiltered_plans", "processed_plans",
+        #             "relevant_plans_pctg", "irrelevant_plans_pctg", "unfiltered_plans_pctg",
+        #             "planning_time", "extending_plans_time", "task_reformulation_time", "independent_planning_time", "global_time",
+        #             "planning_time_pctg", "extending_plans_time_pctg", "task_reformulation_time_pctg", "independent_planning_time_pctg"
+        #         ]
+        #     )
+        #     f.close()
 
-        print_row = ""
-        for elem in row[:-1]:
-            print_row += f"{elem},"
-        print_row += f"{row[-1]}"
+        # f = open(results_file, 'a+', newline='')
+        # writer = csv.writer(f)
+        # row = [
+        #     args.domain.split("/")[-2],
+        #     # problem,
+        #     os.path.basename(args.problem),
+        #     args.number_of_plans,
+        #     self._iterationStep-1,
+        #     relevant_plans,
+        #     irrelevant_plans,
+        #     unfiltered_plans,
+        #     processed_plans,
+        #     relevant_plans_pctg,
+        #     irrelevant_plans_pctg,
+        #     unfiltered_plans_pctg,
+        #     _timers["planning"]._elapsed_clock,
+        #     _timers["extending_plans"]._elapsed_clock,
+        #     _timers["task_reformulation"]._elapsed_clock,
+        #     _timers["external_planning"]._elapsed_clock,
+        #     global_time,
+        #     _timers["planning"]._elapsed_clock/global_time,
+        #     _timers["extending_plans"]._elapsed_clock/global_time,
+        #     _timers["task_reformulation"]._elapsed_clock/global_time,
+        #     _timers["external_planning"]._elapsed_clock/global_time
+        # ]
+        # writer.writerow(row)
+        # f.close()
 
-        print("res:" + print_row)
+        # print_row = ""
+        # for elem in row[:-1]:
+        #     print_row += f"{elem},"
+        # print_row += f"{row[-1]}"
+        # print("res:" + print_row)
+
+        """
+        ----------------------------------------------------------
+        """
         
 
     def enough_plans_found(self, plan_manager):

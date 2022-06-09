@@ -1,3 +1,0 @@
-(cook)
-(wrap)
-(dolly)

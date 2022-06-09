@@ -14,14 +14,7 @@ from iterative.plan_manager import _parse_plan
 -----------
 FILTER PLAN
 -----------
-Script that detects if a plan is relevant.
-
-> Syscall: python filter_plans.py <domain> <problem> <plan> <cost> <number_of_plans>
-
-> Output: <elapsed_time>,<True/False>
-          
-          * elapsed_time: time spent on using independent planner over new planning task
-          * True/False: returns whether <plan> is irrelevant (True) or relevant (False)
+Script that filters plans under relevance criteria.
 """
 
 

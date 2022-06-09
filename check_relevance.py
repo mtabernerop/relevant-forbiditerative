@@ -17,10 +17,6 @@ import logging
 CHECK RELEVANCE
 ---------------
 Script that detects if a plan is relevant.
-> Syscall: python check_relevance.py <domain> <problem> <plan> <cost> <number_of_plans>
-> Output: <true/false>
-          
-          * True/False: returns whether <plan> is irrelevant (True) or relevant (False)
 """
 
 def get_plan_counter(folder):

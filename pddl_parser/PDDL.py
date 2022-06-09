@@ -4,12 +4,8 @@ import re
 from pddl_parser.action import Action
 from pddl_parser.action import PlanAction
 from pddl_parser.action import ground_array
-# from action import Action
-# from action import PlanAction
-# from action import ground_array
 from textwrap import indent
 from pddl_parser.n2w import N2W
-# from n2w import N2W
 import logging
 import os, sys
 
@@ -635,7 +631,7 @@ def parse(domain_filename, problem_filename, plan_filename, enable_output=False)
     domain += f'{parse_actions(parser.actions)}{eol}'
     domain += ')'
 
-# ----
+    # ----
     # PLAN
     # ----
     plan = parser.parse_plan(plan_filename)
