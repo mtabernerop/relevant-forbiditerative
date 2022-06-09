@@ -38,6 +38,7 @@ Example of running command
 ```
 
 ### Relevant Top-k Planning
+```
 @misc{tabernero22actionfiltering,
   title =         {Relevant Action Filtering in Automated Planning},
   author =        {Tabernero Palomar, Miguel},
@@ -47,6 +48,7 @@ Example of running command
   language =      {English},
   addendum =      {unpublished thesis}
 }
+```
 
 
 ## Licensing
