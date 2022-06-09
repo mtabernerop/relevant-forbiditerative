@@ -14,11 +14,11 @@ For building the code please use
 
 # Running
 ```
-# ./plan_topk.sh <domain> <problem> <number-of-plans> <global-time> <plan-reorderings> <structural-symmetries>
+./plan_topk.sh <domain> <problem> <number-of-plans> <global-time> <plan-reorderings> <structural-symmetries>
 ```
 Example of running command
 ```
-# ./plan_topk.sh examples/blocks/domain.pddl examples/blocks/
+./plan_topk.sh examples/blocks/domain.pddl examples/blocks/
 ```
 
 
