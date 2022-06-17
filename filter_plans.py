@@ -106,7 +106,7 @@ if __name__ == "__main__":
                 
                 # inform that the found plan contains irrelevant actions
                 print("true")
-
+                
                 # mapping back order parameters in actions
                 copy_plans.map_back_plan_order_parameters(ra_plan_filename)
 
