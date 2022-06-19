@@ -14,11 +14,11 @@ For building the code please use
 
 # Running
 ```
-./plan_topk.sh <domain> <problem> <number-of-plans> <global-time> <plan-reorderings> <structural-symmetries>
+./plan_topk.sh <domain> <problem> <number-of-plans> <overall-time-limit> <plan-reorderings> <structural-symmetries>
 ```
 Example of running command
 ```
-./plan_topk.sh examples/blocks/domain.pddl examples/blocks/
+./plan_topk.sh examples/blocks/domain.pddl examples/blocks/instances/p0.pddl 5
 ```
 
 
@@ -39,14 +39,11 @@ Example of running command
 
 ### Relevant Top-k Planning
 ```
-@misc{tabernero22actionfiltering,
-  title =         {Relevant Action Filtering in Automated Planning},
-  author =        {Tabernero Palomar, Miguel},
-  howpublished =  {Bachelor Thesis},
-  note =          {Universidad Carlos III de Madrid},
-  year =          2022,
-  language =      {English},
-  addendum =      {unpublished thesis}
+@misc{salerno22filtering,
+  title =         "{F}iltering {T}op-k {R}elevant {P}lans",
+  author =        "Salerno, Mauricio and Tabernero, Miguel and Fuentetaja, Raquel and Pozanco, Alberto",
+  year =          "2022",
+  booktitle =     "Proceedings of the 32nd International Conference on Automated Planning and Scheduling"
 }
 ```
 
